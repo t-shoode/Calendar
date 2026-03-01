@@ -6,6 +6,11 @@ struct ExpensesView: View {
   @Query(sort: \Expense.date) private var expenses: [Expense]
   @Query(sort: \RecurringExpenseTemplate.createdAt) private var templates:
     [RecurringExpenseTemplate]
+  @Query(
+    filter: #Predicate<DuplicateSuggestion> { $0.status == "pending" },
+    sort: \DuplicateSuggestion.createdAt,
+    order: .reverse
+  ) private var pendingDuplicateSuggestions: [DuplicateSuggestion]
 
   @State private var selectedSegment: ExpenseSegment = .history
   @State private var selectedPeriod: ExpensePeriod = .monthly
@@ -202,10 +207,25 @@ struct ExpensesView: View {
             expenses: filteredExpenses,
             allExpensesForTotals: totalExpensesForPeriod,
             period: selectedPeriod,
+            duplicateSuggestions: pendingDuplicateSuggestions,
             viewModel: viewModel,
             onEdit: { expense in
               editingExpense = expense
               showingAddExpense = true
+            },
+            onMergeDuplicate: { suggestion in
+              do {
+                try DuplicateDetectionService.shared.mergeSuggestion(suggestion, context: modelContext)
+              } catch {
+                ErrorPresenter.shared.present(error)
+              }
+            },
+            onDismissDuplicate: { suggestion in
+              do {
+                try DuplicateDetectionService.shared.dismissSuggestion(suggestion, context: modelContext)
+              } catch {
+                ErrorPresenter.shared.present(error)
+              }
             }
           )
         case .budget:
@@ -302,6 +322,12 @@ struct ExpensesView: View {
     } message: {
       Text(Localization.string(.cannotBeUndone))
     }
+    .onAppear {
+      DuplicateDetectionService.shared.refreshSuggestions(context: modelContext)
+    }
+    .onChange(of: expenses.count) { _, _ in
+      DuplicateDetectionService.shared.refreshSuggestions(context: modelContext)
+    }
   }
 
   private func clearAllExpenses() {
@@ -333,12 +359,39 @@ struct HistoryView: View {
   let expenses: [Expense]
   let allExpensesForTotals: [Expense]
   let period: ExpensesView.ExpensePeriod
+  let duplicateSuggestions: [DuplicateSuggestion]
   let viewModel: ExpenseViewModel
   let onEdit: (Expense) -> Void
+  let onMergeDuplicate: (DuplicateSuggestion) -> Void
+  let onDismissDuplicate: (DuplicateSuggestion) -> Void
 
   var body: some View {
     ScrollView {
       VStack(spacing: 24) {
+        if !duplicateSuggestions.isEmpty {
+          VStack(alignment: .leading, spacing: 10) {
+            HStack {
+              Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.orange)
+              Text(Localization.string(.duplicateSuggestionsX(duplicateSuggestions.count)))
+                .font(.system(size: 13, weight: .semibold))
+              Spacer()
+            }
+
+            ForEach(duplicateSuggestions) { suggestion in
+              DuplicateSuggestionRow(
+                suggestion: suggestion,
+                expenses: expenses,
+                onMerge: { onMergeDuplicate(suggestion) },
+                onDismiss: { onDismissDuplicate(suggestion) }
+              )
+            }
+          }
+          .padding(14)
+          .background(Color.secondaryFill)
+          .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+
         // Total Amount - split into Expenses and Income columns
         let bounds = periodBounds()
         let expenseTotals = viewModel.multiCurrencyTotalsForPeriod(
@@ -505,6 +558,54 @@ struct HistoryView: View {
     return (
       interval.start, calendar.date(byAdding: .second, value: -1, to: interval.end) ?? interval.end
     )
+  }
+}
+
+private struct DuplicateSuggestionRow: View {
+  let suggestion: DuplicateSuggestion
+  let expenses: [Expense]
+  let onMerge: () -> Void
+  let onDismiss: () -> Void
+
+  private var expenseA: Expense? {
+    expenses.first(where: { $0.id == suggestion.expenseIdA })
+  }
+
+  private var expenseB: Expense? {
+    expenses.first(where: { $0.id == suggestion.expenseIdB })
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text(Localization.string(.possibleDuplicate))
+        .font(.system(size: 12, weight: .bold))
+
+      if let expenseA, let expenseB {
+        Text("\(expenseA.title) • \(Currency.uah.symbol)\(String(format: "%.0f", expenseA.currencyEnum.convertToUAH(expenseA.amount)))")
+          .font(.system(size: 12))
+          .foregroundColor(.secondary)
+        Text("\(expenseB.title) • \(Currency.uah.symbol)\(String(format: "%.0f", expenseB.currencyEnum.convertToUAH(expenseB.amount)))")
+          .font(.system(size: 12))
+          .foregroundColor(.secondary)
+      }
+
+      HStack {
+        Button(Localization.string(.merge)) {
+          onMerge()
+        }
+        .font(.system(size: 12, weight: .semibold))
+
+        Spacer()
+
+        Button(Localization.string(.dismiss)) {
+          onDismiss()
+        }
+        .font(.system(size: 12, weight: .semibold))
+      }
+    }
+    .padding(10)
+    .background(Color.primaryFill.opacity(0.5))
+    .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 }
 

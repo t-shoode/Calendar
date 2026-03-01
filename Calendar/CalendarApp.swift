@@ -22,6 +22,7 @@ struct CalendarApp: App {
             Event.self, TodoItem.self, TodoCategory.self, Expense.self,
             RecurringExpenseTemplate.self, CSVImportSession.self, Alarm.self, TimerPreset.self,
             TimerSession.self, BudgetLimit.self, CashflowForecastCache.self,
+            DuplicateSuggestion.self,
           ])
       #else
         ContentView()
@@ -30,6 +31,7 @@ struct CalendarApp: App {
             Event.self, TodoItem.self, TodoCategory.self, Expense.self,
             RecurringExpenseTemplate.self, CSVImportSession.self, Alarm.self, TimerPreset.self,
             TimerSession.self, BudgetLimit.self, CashflowForecastCache.self,
+            DuplicateSuggestion.self,
           ])
       #endif
     }

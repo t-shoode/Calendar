@@ -292,6 +292,10 @@ public struct Localization {
     case importFromBank
     case transactions
     case duplicates
+    case duplicateSuggestionsX(Int)
+    case possibleDuplicate
+    case merge
+    case dismiss
     case analyzingCSV
     case cannotAccessFile
     case noFileSelected
@@ -897,6 +901,16 @@ public struct Localization {
       return lang == .ukrainian ? "Транзакції" : "Transactions"
     case .duplicates:
       return lang == .ukrainian ? "Дублікати" : "Duplicates"
+    case .duplicateSuggestionsX(let count):
+      return lang == .ukrainian
+        ? "Виявлено можливі дублікати: \(count)"
+        : "Possible duplicates found: \(count)"
+    case .possibleDuplicate:
+      return lang == .ukrainian ? "Можливий дублікат" : "Possible duplicate"
+    case .merge:
+      return lang == .ukrainian ? "Об'єднати" : "Merge"
+    case .dismiss:
+      return lang == .ukrainian ? "Відхилити" : "Dismiss"
     case .analyzingCSV:
       return lang == .ukrainian ? "Аналіз CSV..." : "Analyzing CSV..."
     case .cannotAccessFile:
