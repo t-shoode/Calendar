@@ -297,8 +297,19 @@ public struct Localization {
     // Budget & Recurring
     case activeRecurringX(Int)
     case pausedX(Int)
+    case inactiveX(Int)
+    case budgets
+    case addBudget
+    case editBudget
+    case noBudgetsYet
+    case budgetUsedPercent(Int)
+    case budgetWarningTitle
+    case budgetWarningBody(String)
+    case budgetExceededTitle
+    case budgetExceededBody(String)
     case pause
     case resume
+    case activate
     case nextOccurrence(String)
 
     // Insights
@@ -890,10 +901,36 @@ public struct Localization {
       return lang == .ukrainian ? "Активні періодичні (\(count))" : "Active Recurring (\(count))"
     case .pausedX(let count):
       return lang == .ukrainian ? "Призупинені (\(count))" : "Paused (\(count))"
+    case .inactiveX(let count):
+      return lang == .ukrainian ? "Неактивні (\(count))" : "Inactive (\(count))"
+    case .budgets:
+      return lang == .ukrainian ? "Бюджети" : "Budgets"
+    case .addBudget:
+      return lang == .ukrainian ? "Додати бюджет" : "Add Budget"
+    case .editBudget:
+      return lang == .ukrainian ? "Редагувати бюджет" : "Edit Budget"
+    case .noBudgetsYet:
+      return lang == .ukrainian ? "Бюджетів ще немає" : "No budgets yet"
+    case .budgetUsedPercent(let percent):
+      return lang == .ukrainian ? "Використано: \(percent)%" : "Used: \(percent)%"
+    case .budgetWarningTitle:
+      return lang == .ukrainian ? "Наближення до ліміту" : "Budget Warning"
+    case .budgetWarningBody(let amount):
+      return lang == .ukrainian
+        ? "Ви досягли 80% бюджету. Витрачено: \(amount)"
+        : "You reached 80% of your budget. Spent: \(amount)"
+    case .budgetExceededTitle:
+      return lang == .ukrainian ? "Бюджет перевищено" : "Budget Exceeded"
+    case .budgetExceededBody(let amount):
+      return lang == .ukrainian
+        ? "Ви досягли 100% бюджету. Витрачено: \(amount)"
+        : "You reached 100% of your budget. Spent: \(amount)"
     case .pause:
       return lang == .ukrainian ? "Призупинити" : "Pause"
     case .resume:
       return lang == .ukrainian ? "Відновити" : "Resume"
+    case .activate:
+      return lang == .ukrainian ? "Активувати" : "Activate"
     case .nextOccurrence(let date):
       return lang == .ukrainian ? "Наступна: \(date)" : "Next: \(date)"
     case .netIncome(let amount):
