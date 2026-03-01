@@ -18,35 +18,37 @@ struct GlassButton: View {
       content
     }
     .buttonStyle(.plain)
+    .pressableScale(0.97, animation: .spring(response: 0.24, dampingFraction: 0.8))
   }
 
   private var content: some View {
     HStack(spacing: Spacing.xs) {
       if let icon = icon {
         Image(systemName: icon)
-          .font(.system(size: 16, weight: .semibold))
+          .font(.system(size: 14, weight: .semibold))
       }
       Text(title)
-        .font(Typography.headline)
+        .font(Typography.subheadline.weight(.semibold))
     }
-    .padding(.horizontal, Spacing.lg)
-    .padding(.vertical, Spacing.sm)
+    .padding(.horizontal, 14)
+    .padding(.vertical, 10)
     .foregroundColor(isPrimary ? .white : .textPrimary)
     .background(backgroundView)
-    .overlay(
-      RoundedRectangle(cornerRadius: Spacing.smallRadius)
-        .stroke(Color.border, lineWidth: 0.5)
-    )
   }
 
   @ViewBuilder
   private var backgroundView: some View {
     if isPrimary {
-      Color.accentColor
-        .clipShape(RoundedRectangle(cornerRadius: Spacing.smallRadius))
+      RoundedRectangle(cornerRadius: Spacing.smallRadius, style: .continuous)
+        .fill(Color.accentColor)
+        .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
     } else {
-      RoundedRectangle(cornerRadius: Spacing.smallRadius)
-        .fill(Color.secondaryFill)
+      RoundedRectangle(cornerRadius: Spacing.smallRadius, style: .continuous)
+        .fill(Color.secondaryFill.opacity(0.7))
+        .overlay(
+          RoundedRectangle(cornerRadius: Spacing.smallRadius, style: .continuous)
+            .stroke(Color.border.opacity(0.2), lineWidth: 0.7)
+        )
     }
   }
 }

@@ -4,8 +4,8 @@ struct AddEventView: View {
   @Environment(\.dismiss) private var dismiss
 
   let date: Date
-  let event: Event?
-  let onSave: (String, String?, String, Date, TimeInterval?) -> Void
+  let eventOccurrence: EventOccurrence?
+  let onSave: (String, String?, String, Date, TimeInterval?, RecurrenceType?, Int, Date?) -> Void
   let onDelete: (() -> Void)?
 
   @State private var title: String = ""
@@ -13,6 +13,9 @@ struct AddEventView: View {
   @State private var selectedColor: String = "blue"
   @State private var selectedDate: Date = Date()
   @State private var reminderSelection: TimeInterval = 0
+  @State private var recurrenceType: RecurrenceType?
+  @State private var recurrenceInterval: Int = 1
+  @State private var recurrenceEndDate: Date?
 
   // ... colors ...
   private let colors = ["blue", "green", "orange", "red", "purple", "pink", "yellow"]
@@ -30,21 +33,25 @@ struct AddEventView: View {
   }
 
   init(
-    date: Date, event: Event? = nil,
-    onSave: @escaping (String, String?, String, Date, TimeInterval?) -> Void,
+    date: Date, eventOccurrence: EventOccurrence? = nil,
+    onSave: @escaping (String, String?, String, Date, TimeInterval?, RecurrenceType?, Int, Date?) -> Void,
     onDelete: (() -> Void)? = nil
   ) {
     self.date = date
-    self.event = event
+    self.eventOccurrence = eventOccurrence
     self.onSave = onSave
     self.onDelete = onDelete
 
-    if let event = event {
+    if let occurrence = eventOccurrence {
+      let event = occurrence.sourceEvent
       _title = State(initialValue: event.title)
       _notes = State(initialValue: event.notes ?? "")
       _selectedColor = State(initialValue: event.color)
-      _selectedDate = State(initialValue: event.date)
+      _selectedDate = State(initialValue: occurrence.occurrenceDate)
       _reminderSelection = State(initialValue: event.reminderInterval ?? 0)
+      _recurrenceType = State(initialValue: event.recurrenceTypeEnum)
+      _recurrenceInterval = State(initialValue: event.recurrenceInterval ?? 1)
+      _recurrenceEndDate = State(initialValue: event.recurrenceEndDate)
     } else {
       _selectedDate = State(initialValue: date)
     }
@@ -53,11 +60,7 @@ struct AddEventView: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section(
-          Localization.string(.eventsCount(0)).replacingOccurrences(of: "0 ", with: "")
-            .replacingOccurrences(of: "подій", with: "Деталі події").replacingOccurrences(
-              of: "events", with: "Event Details")
-        ) {
+        Section(eventOccurrence == nil ? Localization.string(.newEvent) : Localization.string(.editEvent)) {
           TextField(Localization.string(.title), text: $title)
 
           if #available(iOS 16.0, *) {
@@ -78,6 +81,14 @@ struct AddEventView: View {
               Text(label).tag(value)
             }
           }
+        }
+
+        Section(Localization.string(.recurring)) {
+          RecurrencePicker(
+            recurrenceType: $recurrenceType,
+            interval: $recurrenceInterval,
+            endDate: $recurrenceEndDate
+          )
         }
 
         Section(Localization.string(.color)) {
@@ -109,7 +120,7 @@ struct AddEventView: View {
         }
       }
       .navigationTitle(
-        event == nil ? Localization.string(.newEvent) : Localization.string(.editEvent)
+        eventOccurrence == nil ? Localization.string(.newEvent) : Localization.string(.editEvent)
       )
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -125,7 +136,16 @@ struct AddEventView: View {
         ToolbarItem(placement: .confirmationAction) {
           Button(Localization.string(.save)) {
             let reminder = reminderSelection == 0 ? nil : reminderSelection
-            onSave(title, notes.isEmpty ? nil : notes, selectedColor, selectedDate, reminder)
+            onSave(
+              title,
+              notes.isEmpty ? nil : notes,
+              selectedColor,
+              selectedDate,
+              reminder,
+              recurrenceType,
+              recurrenceInterval,
+              recurrenceType == nil ? nil : recurrenceEndDate
+            )
             dismiss()
           }
           .disabled(title.isEmpty)

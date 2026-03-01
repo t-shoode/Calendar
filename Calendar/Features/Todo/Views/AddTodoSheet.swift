@@ -55,7 +55,8 @@ struct AddTodoSheet: View {
       _recurrenceType = State(initialValue: todo.recurrenceTypeEnum)
       _recurrenceInterval = State(initialValue: todo.recurrenceInterval)
       _recurrenceEndDate = State(initialValue: todo.recurrenceEndDate)
-      _subtaskTitles = State(initialValue: todo.subtasks?.map { $0.title } ?? [])
+      _subtaskTitles = State(
+        initialValue: (todo.subtasks ?? []).sorted { $0.createdAt < $1.createdAt }.map { $0.title })
       _repeatReminderInterval = State(initialValue: todo.reminderRepeatInterval ?? 0)
       _repeatReminderCount = State(initialValue: todo.reminderRepeatCount ?? 3)
     }
@@ -136,11 +137,18 @@ struct AddTodoSheet: View {
                   DatePicker(
                     Localization.string(.dueDate), selection: $dueDate,
                     displayedComponents: [.date, .hourAndMinute])
-                  
+
                   Divider()
                   Toggle(Localization.string(.reminder), isOn: $reminderEnabled)
                     .font(Typography.body)
                     .fontWeight(.medium)
+
+                  Divider()
+                  RecurrencePicker(
+                    recurrenceType: $recurrenceType,
+                    interval: $recurrenceInterval,
+                    endDate: $recurrenceEndDate
+                  )
                 }
               }
             }
@@ -148,35 +156,64 @@ struct AddTodoSheet: View {
             // Subtasks
             GlassCard(cornerRadius: 24, material: .thin) {
               VStack(alignment: .leading, spacing: 12) {
-                Text(Localization.string(.subtasks).uppercased())
-                  .font(.system(size: 10, weight: .black))
-                  .foregroundColor(.textTertiary)
-                
-                ForEach(subtaskTitles.indices, id: \.self) { index in
-                  HStack {
-                    Image(systemName: "circle")
-                      .foregroundColor(.accentColor)
-                    Text(subtaskTitles[index])
-                    Spacer()
-                    Button(action: { subtaskTitles.remove(at: index) }) {
-                      Image(systemName: "minus.circle.fill")
-                        .foregroundColor(.textTertiary)
-                    }
-                  }
-                  .padding(.vertical, 4)
+                HStack(spacing: 8) {
+                  Text(Localization.string(.subtasks).uppercased())
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(.textTertiary)
+                  Text("\(subtaskTitles.count)")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.accentColor)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
                 }
-                
-                HStack {
+
+                if subtaskTitles.isEmpty {
+                  Text("No subtasks yet. Add one below.")
+                    .font(Typography.caption)
+                    .foregroundColor(.textTertiary)
+                } else {
+                  ForEach(subtaskTitles.indices, id: \.self) { index in
+                    HStack(spacing: 10) {
+                      Image(systemName: "circle")
+                        .font(.system(size: 12))
+                        .foregroundColor(.accentColor)
+                      Text(subtaskTitles[index])
+                        .font(Typography.body)
+                        .lineLimit(1)
+                      Spacer()
+                      Button(action: { subtaskTitles.remove(at: index) }) {
+                        Image(systemName: "minus.circle.fill")
+                          .font(.system(size: 16))
+                          .foregroundColor(.textTertiary)
+                      }
+                      .buttonStyle(.plain)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                    .background(.ultraThinMaterial.opacity(0.35))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                  }
+                }
+
+                HStack(spacing: 12) {
                   TextField(Localization.string(.addSubtask), text: $newSubtaskTitle)
                     .textFieldStyle(.plain)
-                  
+                    .onSubmit(addSubtask)
+
                   Button(action: addSubtask) {
                     Image(systemName: "plus.circle.fill")
-                      .font(.system(size: 20))
+                      .font(.system(size: 22))
                       .foregroundColor(.accentColor)
                   }
-                  .disabled(newSubtaskTitle.trimmingCharacters(in: .whitespaces).isEmpty)
+                  .buttonStyle(.plain)
+                  .disabled(newSubtaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial.opacity(0.25))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
               }
             }
             
@@ -218,7 +255,7 @@ struct AddTodoSheet: View {
   }
 
   private func addSubtask() {
-    let trimmed = newSubtaskTitle.trimmingCharacters(in: .whitespaces)
+    let trimmed = newSubtaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
     if !trimmed.isEmpty {
       subtaskTitles.append(trimmed)
       newSubtaskTitle = ""

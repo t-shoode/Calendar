@@ -117,6 +117,20 @@
 		F5D65F612F421490004F7A39 /* StartupUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D65F4F2F4213D0004F7A39 /* StartupUITests.swift */; };
 		F5D65F622F421498004F7A39 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5D65F572F421409004F7A39 /* XCTest.framework */; platformFilter = ios; };
 		F5D65F662F42236D004F7A39 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D65F652F42236D004F7A39 /* Logging.swift */; };
+		F5E000102F50000100AA0001 /* BudgetLimit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000012F50000100AA0001 /* BudgetLimit.swift */; };
+		F5E000112F50000100AA0001 /* CashflowForecastCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000022F50000100AA0001 /* CashflowForecastCache.swift */; };
+		F5E000122F50000100AA0001 /* DuplicateSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000032F50000100AA0001 /* DuplicateSuggestion.swift */; };
+		F5E000132F50000100AA0001 /* FXRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000042F50000100AA0001 /* FXRate.swift */; };
+		F5E000142F50000100AA0001 /* BudgetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000052F50000100AA0001 /* BudgetService.swift */; };
+		F5E000152F50000100AA0001 /* DuplicateDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000062F50000100AA0001 /* DuplicateDetectionService.swift */; };
+		F5E000162F50000100AA0001 /* FXRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000072F50000100AA0001 /* FXRateService.swift */; };
+		F5E000172F50000100AA0001 /* FXRateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000082F50000100AA0001 /* FXRateStore.swift */; };
+		F5E000182F50000100AA0001 /* ForecastService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E000092F50000100AA0001 /* ForecastService.swift */; };
+		F5E000192F50000100AA0001 /* ForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0000A2F50000100AA0001 /* ForecastView.swift */; };
+		F5E0001A2F50000100AA0001 /* BudgetServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0000B2F50000100AA0001 /* BudgetServiceTests.swift */; };
+		F5E0001B2F50000100AA0001 /* DuplicateDetectionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0000C2F50000100AA0001 /* DuplicateDetectionServiceTests.swift */; };
+		F5E0001C2F50000100AA0001 /* FXRateServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0000D2F50000100AA0001 /* FXRateServiceTests.swift */; };
+		F5E0001D2F50000100AA0001 /* ForecastServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E0000E2F50000100AA0001 /* ForecastServiceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -273,6 +287,20 @@
 		F5D65F4F2F4213D0004F7A39 /* StartupUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupUITests.swift; sourceTree = "<group>"; };
 		F5D65F572F421409004F7A39 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		F5D65F652F42236D004F7A39 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
+		F5E000012F50000100AA0001 /* BudgetLimit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetLimit.swift; sourceTree = "<group>"; };
+		F5E000022F50000100AA0001 /* CashflowForecastCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashflowForecastCache.swift; sourceTree = "<group>"; };
+		F5E000032F50000100AA0001 /* DuplicateSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateSuggestion.swift; sourceTree = "<group>"; };
+		F5E000042F50000100AA0001 /* FXRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXRate.swift; sourceTree = "<group>"; };
+		F5E000052F50000100AA0001 /* BudgetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetService.swift; sourceTree = "<group>"; };
+		F5E000062F50000100AA0001 /* DuplicateDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateDetectionService.swift; sourceTree = "<group>"; };
+		F5E000072F50000100AA0001 /* FXRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXRateService.swift; sourceTree = "<group>"; };
+		F5E000082F50000100AA0001 /* FXRateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXRateStore.swift; sourceTree = "<group>"; };
+		F5E000092F50000100AA0001 /* ForecastService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastService.swift; sourceTree = "<group>"; };
+		F5E0000A2F50000100AA0001 /* ForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastView.swift; sourceTree = "<group>"; };
+		F5E0000B2F50000100AA0001 /* BudgetServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetServiceTests.swift; sourceTree = "<group>"; };
+		F5E0000C2F50000100AA0001 /* DuplicateDetectionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateDetectionServiceTests.swift; sourceTree = "<group>"; };
+		F5E0000D2F50000100AA0001 /* FXRateServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXRateServiceTests.swift; sourceTree = "<group>"; };
+		F5E0000E2F50000100AA0001 /* ForecastServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastServiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -412,9 +440,13 @@
 			isa = PBXGroup;
 			children = (
 				F593C0E82F33C234007F8DEB /* Alarm.swift */,
+				F5E000012F50000100AA0001 /* BudgetLimit.swift */,
+				F5E000022F50000100AA0001 /* CashflowForecastCache.swift */,
 				F593C0E92F33C234007F8DEB /* Event.swift */,
 				F593C0EA2F33C234007F8DEB /* TimerPreset.swift */,
 				F5A362D02F40875300030163 /* CSVImportSession.swift */,
+				F5E000032F50000100AA0001 /* DuplicateSuggestion.swift */,
+				F5E000042F50000100AA0001 /* FXRate.swift */,
 				F5A362D12F40875300030163 /* RecurringExpenseTemplate.swift */,
 				F593C0EB2F33C234007F8DEB /* TimerSession.swift */,
 				F554EFE42F34F4AA008B6601 /* TodoCategory.swift */,
@@ -430,9 +462,14 @@
 			isa = PBXGroup;
 			children = (
 				F593C0ED2F33C234007F8DEB /* AudioService.swift */,
+				F5E000052F50000100AA0001 /* BudgetService.swift */,
 				F5A1B0002F4E0001007F8DEB /* HolidayService.swift */,
 				F593C0EE2F33C234007F8DEB /* NotificationService.swift */,
 				F5A362D42F40876200030163 /* CSVImportService.swift */,
+				F5E000062F50000100AA0001 /* DuplicateDetectionService.swift */,
+				F5E000072F50000100AA0001 /* FXRateService.swift */,
+				F5E000082F50000100AA0001 /* FXRateStore.swift */,
+				F5E000092F50000100AA0001 /* ForecastService.swift */,
 				F5A362D52F40876200030163 /* PatternDetectionService.swift */,
 				F5D65F452F4212F6004F7A39 /* StartupManager.swift */,
 				F5A362D62F40876200030163 /* RecurringExpenseService.swift */,
@@ -687,6 +724,7 @@
 				F5A362E42F408C6600030163 /* AddTemplateSheet.swift */,
 				F5A362E62F4091E700030163 /* EditTemplateSheet.swift */,
 				F5A362DD2F40878700030163 /* CSVImportView.swift */,
+				F5E0000A2F50000100AA0001 /* ForecastView.swift */,
 				F5A362DE2F40878700030163 /* InsightsView.swift */,
 				F5A1B0142F4E000B007F8DEB /* AddExpenseSheet.swift */,
 			);
@@ -731,7 +769,11 @@
 		F5D65F4C2F4213D0004F7A39 /* CalendarTests */ = {
 			isa = PBXGroup;
 			children = (
+				F5E0000B2F50000100AA0001 /* BudgetServiceTests.swift */,
 				F5D65F492F4213D0004F7A39 /* CalendarTests.swift */,
+				F5E0000C2F50000100AA0001 /* DuplicateDetectionServiceTests.swift */,
+				F5E0000D2F50000100AA0001 /* FXRateServiceTests.swift */,
+				F5E0000E2F50000100AA0001 /* ForecastServiceTests.swift */,
 				F5D65F4A2F4213D0004F7A39 /* StartupManagerTests.swift */,
 				F5D65F4B2F4213D0004F7A39 /* TodoCategoryTests.swift */,
 			);
@@ -926,8 +968,11 @@
 				F593C1202F33C234007F8DEB /* CountdownView.swift in Sources */,
 				F593C1212F33C234007F8DEB /* CalendarViewModel.swift in Sources */,
 				F593C1222F33C234007F8DEB /* View+Glass.swift in Sources */,
+				F5E000102F50000100AA0001 /* BudgetLimit.swift in Sources */,
 				F554F0062F34F9E6008B6601 /* SettingsSheet.swift in Sources */,
 				F593C1232F33C234007F8DEB /* CalendarApp.swift in Sources */,
+				F5E000142F50000100AA0001 /* BudgetService.swift in Sources */,
+				F5E000112F50000100AA0001 /* CashflowForecastCache.swift in Sources */,
 				F5A362E32F40879300030163 /* TemplateSuggestionCard.swift in Sources */,
 				F593C1242F33C234007F8DEB /* TimerView.swift in Sources */,
 				F593C1252F33C234007F8DEB /* NotificationService.swift in Sources */,
@@ -957,8 +1002,10 @@
 				F5A362D22F40875300030163 /* CSVImportSession.swift in Sources */,
 				F5A362D32F40875300030163 /* RecurringExpenseTemplate.swift in Sources */,
 				F5D65F482F42130D004F7A39 /* SplashView.swift in Sources */,
+				F5E000122F50000100AA0001 /* DuplicateSuggestion.swift in Sources */,
 				F554EFFA2F34F4DF008B6601 /* TodoCheckbox.swift in Sources */,
 				F5A362D72F40876200030163 /* CSVImportService.swift in Sources */,
+				F5E000152F50000100AA0001 /* DuplicateDetectionService.swift in Sources */,
 				F5A362D82F40876200030163 /* PatternDetectionService.swift in Sources */,
 				F5A362D92F40876200030163 /* RecurringExpenseService.swift in Sources */,
 				F554EFFB2F34F4DF008B6601 /* TodoView.swift in Sources */,
@@ -966,6 +1013,9 @@
 				F554EFFD2F34F4DF008B6601 /* CategoryCard.swift in Sources */,
 				F554EFFE2F34F4DF008B6601 /* RecurrencePicker.swift in Sources */,
 				F51F1B462F3BD2FA007A3F3E /* FloatingErrorView.swift in Sources */,
+				F5E000132F50000100AA0001 /* FXRate.swift in Sources */,
+				F5E000162F50000100AA0001 /* FXRateService.swift in Sources */,
+				F5E000172F50000100AA0001 /* FXRateStore.swift in Sources */,
 				F554EFE62F34F4AA008B6601 /* TodoCategory.swift in Sources */,
 				F554EFE72F34F4AA008B6601 /* TodoItem.swift in Sources */,
 				F593C12F2F33C234007F8DEB /* Event.swift in Sources */,
@@ -999,6 +1049,8 @@
 				F5A362E52F408C6600030163 /* AddTemplateSheet.swift in Sources */,
 				F593C1422F33C234007F8DEB /* Constants.swift in Sources */,
 				F5A362E72F4091E700030163 /* EditTemplateSheet.swift in Sources */,
+				F5E000182F50000100AA0001 /* ForecastService.swift in Sources */,
+				F5E000192F50000100AA0001 /* ForecastView.swift in Sources */,
 				F593C1432F33C234007F8DEB /* GlassButton.swift in Sources */,
 				F5A362DF2F40878700030163 /* BudgetView.swift in Sources */,
 				F5A362E02F40878700030163 /* CSVImportView.swift in Sources */,
@@ -1024,8 +1076,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5E0001A2F50000100AA0001 /* BudgetServiceTests.swift in Sources */,
 				F5D65F5C2F42147B004F7A39 /* StartupManagerTests.swift in Sources */,
 				F5D65F5E2F421484004F7A39 /* CalendarTests.swift in Sources */,
+				F5E0001B2F50000100AA0001 /* DuplicateDetectionServiceTests.swift in Sources */,
+				F5E0001C2F50000100AA0001 /* FXRateServiceTests.swift in Sources */,
+				F5E0001D2F50000100AA0001 /* ForecastServiceTests.swift in Sources */,
 				F5D65F5D2F421480004F7A39 /* TodoCategoryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

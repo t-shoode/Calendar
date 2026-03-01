@@ -3,11 +3,11 @@ import SwiftData
 
 struct EventListView: View {
   let date: Date?
-  let events: [Event]
+  let events: [EventOccurrence]
   var todos: [TodoItem] = []
   var expenses: [Expense] = []
-  let onEdit: (Event) -> Void
-  let onDelete: (Event) -> Void
+  let onEdit: (EventOccurrence) -> Void
+  let onDelete: (EventOccurrence) -> Void
   let onAdd: () -> Void
   var onTodoToggle: ((TodoItem) -> Void)?
   var onTodoTap: ((TodoItem) -> Void)?
@@ -33,8 +33,8 @@ struct EventListView: View {
 
 
   // Helper to determine what to show in the limited space (max 3 items)
-  private func getPreviewItems() -> (events: [Event], expenses: [Expense], todos: [TodoItem]) {
-    var pEvents: [Event] = []
+  private func getPreviewItems() -> (events: [EventOccurrence], expenses: [Expense], todos: [TodoItem]) {
+    var pEvents: [EventOccurrence] = []
     var pExpenses: [Expense] = []
     var pTodos: [TodoItem] = []
     
@@ -154,9 +154,7 @@ struct EventListView: View {
       .frame(height: 160)
       .padding(.bottom, 12)
     }
-    .background(.ultraThinMaterial)
-    .clipShape(RoundedRectangle(cornerRadius: 24))
-    .glassHalo(cornerRadius: 24)
+    .softCard(cornerRadius: 20, padding: 0, shadow: false)
     .padding(.horizontal, 20)
     .sheet(isPresented: $showingDetailSheet) {
       EventListDetailSheet(
@@ -178,15 +176,17 @@ struct EventListView: View {
 }
 
 struct CompactEventRow: View {
-  let event: Event
+  let event: EventOccurrence
   var body: some View {
     HStack(spacing: 8) {
-      Circle().fill(Color.eventColor(named: event.color)).frame(width: 8, height: 8)
-      Text(event.title).font(Typography.body).fontWeight(.semibold).foregroundColor(Color.textPrimary).lineLimit(1)
+      Circle().fill(Color.eventColor(named: event.sourceEvent.color)).frame(width: 8, height: 8)
+      Text(event.sourceEvent.title).font(Typography.body).fontWeight(.semibold).foregroundColor(Color.textPrimary).lineLimit(1)
       Spacer()
-      Text(event.date.formatted(date: .omitted, time: .shortened)).font(Typography.caption).foregroundColor(Color.textSecondary)
+      Text(event.occurrenceDate.formatted(date: .omitted, time: .shortened)).font(Typography.caption).foregroundColor(Color.textSecondary)
     }
-    .padding(.horizontal, 12).padding(.vertical, 8).background(.white.opacity(0.05)).clipShape(RoundedRectangle(cornerRadius: 12))
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .softControl(cornerRadius: 10, padding: 0)
   }
 }
 
@@ -199,7 +199,9 @@ struct CompactExpenseRow: View {
       Spacer()
       Text(expense.amount.formatted(.currency(code: expense.currency))).font(Typography.caption).foregroundColor(Color.textSecondary)
     }
-    .padding(.horizontal, 12).padding(.vertical, 8).background(.white.opacity(0.05)).clipShape(RoundedRectangle(cornerRadius: 12))
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .softControl(cornerRadius: 10, padding: 0)
   }
 }
 
@@ -215,7 +217,9 @@ struct CompactTodoRow: View {
       Spacer()
       PriorityBadge(priority: todo.priorityEnum)
     }
-    .padding(.horizontal, 12).padding(.vertical, 8).background(.white.opacity(0.05)).clipShape(RoundedRectangle(cornerRadius: 12))
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .softControl(cornerRadius: 10, padding: 0)
   }
   private var priorityColor: Color {
     switch todo.priorityEnum {
@@ -229,12 +233,12 @@ struct CompactTodoRow: View {
 struct EventListDetailSheet: View {
   @Environment(\.dismiss) private var dismiss
   let date: Date?
-  let events: [Event]
+  let events: [EventOccurrence]
   let todos: [TodoItem]
   let expenses: [Expense]
   let isToday: Bool
-  let onEdit: (Event) -> Void
-  let onDelete: (Event) -> Void
+  let onEdit: (EventOccurrence) -> Void
+  let onDelete: (EventOccurrence) -> Void
   let onAdd: () -> Void
   var onTodoToggle: ((TodoItem) -> Void)?
   var onTodoTap: ((TodoItem) -> Void)?
@@ -284,17 +288,18 @@ struct EventListDetailSheet: View {
 }
 
 struct EventRow: View {
-  let event: Event
+  let event: EventOccurrence
   var body: some View {
     HStack(spacing: 12) {
-      RoundedRectangle(cornerRadius: 2).fill(Color.eventColor(named: event.color)).frame(width: 4, height: 32)
+      RoundedRectangle(cornerRadius: 2).fill(Color.eventColor(named: event.sourceEvent.color)).frame(width: 4, height: 32)
       VStack(alignment: .leading, spacing: 2) {
-          Text(event.title).font(Typography.body).fontWeight(.bold)
-          Text(event.date.formatted(date: .omitted, time: .shortened)).font(Typography.caption).foregroundColor(.textSecondary)
+          Text(event.sourceEvent.title).font(Typography.body).fontWeight(.bold)
+          Text(event.occurrenceDate.formatted(date: .omitted, time: .shortened)).font(Typography.caption).foregroundColor(.textSecondary)
       }
       Spacer()
     }
-    .padding(12).background(.ultraThinMaterial).clipShape(RoundedRectangle(cornerRadius: 12))
+    .padding(12)
+    .softControl(cornerRadius: 12, padding: 0)
   }
 }
 
@@ -313,6 +318,8 @@ struct EventListTodoRow: View {
       Spacer()
       PriorityBadge(priority: todo.priorityEnum)
     }
-    .padding(12).background(.ultraThinMaterial).clipShape(RoundedRectangle(cornerRadius: 12)).onTapGesture(perform: onTap)
+    .padding(12)
+    .softControl(cornerRadius: 12, padding: 0)
+    .onTapGesture(perform: onTap)
   }
 }

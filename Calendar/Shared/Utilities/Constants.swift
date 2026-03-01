@@ -83,4 +83,12 @@ public struct Constants {
   struct Weather {
     static let cityKey = "weatherCity"
   }
+
+  struct FX {
+    static let rateUSDKey = "fx.rate.usd"
+    static let rateEURKey = "fx.rate.eur"
+    static let manualUSDKey = "fx.manual.usd"
+    static let manualEURKey = "fx.manual.eur"
+    static let updatedAtKey = "fx.updatedAt"
+  }
 }

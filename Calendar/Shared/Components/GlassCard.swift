@@ -6,17 +6,9 @@ struct GlassCard<Content: View>: View {
   let material: MeshGradientMaterial
 
   enum MeshGradientMaterial {
-      case ultraThin
-      case thin
-      case regular
-      
-      var systemMaterial: Material {
-          switch self {
-          case .ultraThin: return .ultraThin
-          case .thin: return .thin
-          case .regular: return .regular
-          }
-      }
+    case ultraThin
+    case thin
+    case regular
   }
 
   init(
@@ -32,9 +24,25 @@ struct GlassCard<Content: View>: View {
   var body: some View {
     content
       .padding(Spacing.cardPadding)
-      .background(material.systemMaterial)
-      .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-      .glassHalo(cornerRadius: cornerRadius)
-      .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+      .background(
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+          .fill(Color.surfaceCard.opacity(materialOpacity))
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+          .stroke(Color.border.opacity(0.3), lineWidth: 0.7)
+      )
+      .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 6)
+  }
+
+  private var materialOpacity: Double {
+    switch material {
+    case .ultraThin:
+      return 0.82
+    case .thin:
+      return 0.9
+    case .regular:
+      return 0.98
+    }
   }
 }

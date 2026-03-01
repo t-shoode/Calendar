@@ -21,21 +21,24 @@ struct CalendarView: View {
   @StateObject private var todoViewModel = TodoViewModel()
   @Query(sort: \Event.date) private var events: [Event]
   @Query(
-    filter: #Predicate<TodoItem> { $0.parentTodo == nil && $0.dueDate != nil },
-    sort: \TodoItem.dueDate)
-  private var todosWithDueDate: [TodoItem]
+    filter: #Predicate<TodoItem> { $0.parentTodo == nil },
+    sort: \TodoItem.createdAt)
+  private var rootTodos: [TodoItem]
   @Query(sort: \Expense.date) private var expenses: [Expense]
   @Query private var expenseTemplates: [RecurringExpenseTemplate]
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.scenePhase) private var scenePhase
 
   @State private var viewMode: CalendarViewMode = .grid
   @State private var showingAddEvent = false
   @State private var showingDatePicker = false
   @State private var showingSettings = false
-  @State private var editingEvent: Event?
+  @State private var editingEventOccurrence: EventOccurrence?
   @State private var editingTodo: TodoItem?
   @State private var editingExpense: Expense?
-  @State private var detailEvent: Event?
+  @State private var detailOccurrence: EventOccurrence?
+  @State private var referenceDate: Date = Date()
+  @State private var midnightRefreshTask: Task<Void, Never>?
 
   var body: some View {
     ZStack {
@@ -55,15 +58,16 @@ struct CalendarView: View {
           }
         )
         .padding(.top, 10)
+        .padding(.bottom, 6)
         .animation(nil, value: viewMode)
 
         // View Mode Content
         VStack(spacing: 0) {
           switch viewMode {
           case .grid:
-            VStack(spacing: 4) {
+            VStack(spacing: 8) {
               WeekdayHeaderView()
-                .padding(.top, 16)
+                .padding(.top, 12)
 
               MonthView(
                 currentMonth: viewModel.currentMonth,
@@ -71,6 +75,7 @@ struct CalendarView: View {
                 events: eventsForMonth,
                 todos: todosForMonth,
                 expenses: expensesForMonth,
+                effectiveTodoDueDate: effectiveCalendarDueDate(for:),
                 onSelectDate: { date in
                   let selectedMonth = Calendar.current.component(.month, from: date)
                   let currentMonth = Calendar.current.component(
@@ -87,6 +92,7 @@ struct CalendarView: View {
                 }
               )
               .frame(height: 310)  // 6 rows with tighter spacing
+              .softCard(cornerRadius: 16, padding: 10, shadow: false)
 
               Spacer(minLength: 0)
 
@@ -95,10 +101,10 @@ struct CalendarView: View {
                 events: eventsForSelectedDate,
                 todos: todosForSelectedDate,
                 expenses: expensesForSelectedDate,
-                onEdit: { event in detailEvent = event },
-                onDelete: { event in
-                  guard !event.isHoliday else { return }
-                  deleteEvent(event)
+                onEdit: { occurrence in detailOccurrence = occurrence },
+                onDelete: { occurrence in
+                  guard !occurrence.sourceEvent.isHoliday else { return }
+                  deleteEvent(occurrence)
                 },
                 onAdd: { showingAddEvent = true },
                 onTodoToggle: { todo in
@@ -142,7 +148,8 @@ struct CalendarView: View {
               events: eventsForMonth,
               todos: todosForMonth,
               expenses: expensesForMonth,
-              onEventTap: { event in detailEvent = event },
+              effectiveTodoDueDate: effectiveCalendarDueDate(for:),
+              onEventTap: { occurrence in detailOccurrence = occurrence },
               onDateSelect: { date in viewModel.selectDate(date) }
             )
 
@@ -154,7 +161,7 @@ struct CalendarView: View {
               ),
               events: eventsForSelectedDate,
               expenses: expensesForSelectedDate,
-              onEventTap: { event in detailEvent = event },
+              onEventTap: { occurrence in detailOccurrence = occurrence },
               onDateSelect: { date in viewModel.selectDate(date) },
               currentMonth: viewModel.currentMonth
             )
@@ -178,120 +185,189 @@ struct CalendarView: View {
     .navigationBarHidden(true)  // We use custom header
     .sheet(isPresented: $showingAddEvent) {
       AddEventView(date: viewModel.selectedDate ?? Date()) {
-        title, notes, color, date, reminderInterval in
+        title, notes, color, date, reminderInterval, recurrenceType, recurrenceInterval, recurrenceEndDate in
         addEvent(
-          title: title, notes: notes, color: color, date: date, reminderInterval: reminderInterval)
+          title: title,
+          notes: notes,
+          color: color,
+          date: date,
+          reminderInterval: reminderInterval,
+          recurrenceType: recurrenceType,
+          recurrenceInterval: recurrenceInterval,
+          recurrenceEndDate: recurrenceEndDate
+        )
       }
     }
     .sheet(isPresented: $showingSettings) {
       SettingsSheet(isPresented: $showingSettings)
     }
-    .sheet(item: $editingEvent) { event in
+    .sheet(item: $editingEventOccurrence) { occurrence in
       AddEventView(
-        date: event.date,
-        event: event,
-        onSave: { title, notes, color, date, reminderInterval in
-          eventViewModel.updateEvent(
-            event,
+        date: occurrence.occurrenceDate,
+        eventOccurrence: occurrence,
+        onSave: {
+          title, notes, color, date, reminderInterval, recurrenceType, recurrenceInterval,
+          recurrenceEndDate in
+          eventViewModel.updateEventOccurrence(
+            occurrence,
             title: title,
             notes: notes,
             color: color,
+            date: date,
             reminderInterval: reminderInterval,
+            recurrenceType: recurrenceType,
+            recurrenceInterval: recurrenceInterval,
+            recurrenceEndDate: recurrenceEndDate,
+            scope: .thisAndFuture,
             context: modelContext
           )
         },
         onDelete: {
-          deleteEvent(event)
+          deleteEvent(occurrence)
         }
       )
     }
     .overlay {
-      if let event = detailEvent {
+      if let occurrence = detailOccurrence {
         ZStack {
           Color.black.opacity(0.3)
             .ignoresSafeArea()
             .onTapGesture {
-              detailEvent = nil
+              detailOccurrence = nil
             }
 
           EventDetailPopover(
-            event: event,
-            onDismiss: { detailEvent = nil },
+            occurrence: occurrence,
+            onDismiss: { detailOccurrence = nil },
             onEdit: {
-              detailEvent = nil
-              editingEvent = event
+              detailOccurrence = nil
+              editingEventOccurrence = occurrence
             },
             onDelete: {
-              detailEvent = nil
-              deleteEvent(event)
+              detailOccurrence = nil
+              deleteEvent(occurrence)
             }
           )
         }
       }
     }
+    .onAppear {
+      refreshReferenceDate()
+      scheduleMidnightRefresh()
+    }
+    .onDisappear {
+      midnightRefreshTask?.cancel()
+      midnightRefreshTask = nil
+    }
+    .onChange(of: scenePhase) { _, newValue in
+      guard newValue == .active else { return }
+      refreshReferenceDate()
+      scheduleMidnightRefresh()
+    }
   }
 
-  private var eventsForMonth: [Event] {
+  private var eventsForMonth: [EventOccurrence] {
     let startOfMonth = viewModel.currentMonth.startOfMonth
     let endOfMonth = viewModel.currentMonth.endOfMonth
-    return events.filter { $0.date >= startOfMonth && $0.date <= endOfMonth }
+    return EventRecurrenceService.shared.occurrences(
+      for: events,
+      in: DateInterval(start: startOfMonth, end: endOfMonth)
+    )
   }
 
   private var todosForMonth: [TodoItem] {
     let startOfMonth = viewModel.currentMonth.startOfMonth
     let endOfMonth = viewModel.currentMonth.endOfMonth
-    return todosWithDueDate.filter { todo in
-      guard let dueDate = todo.dueDate else { return false }
+    return rootTodos.filter { todo in
+      let dueDate = effectiveCalendarDueDate(for: todo)
       return dueDate >= startOfMonth && dueDate <= endOfMonth
     }
   }
 
-  private var eventsForSelectedDate: [Event] {
+  private var eventsForSelectedDate: [EventOccurrence] {
     let dateToCheck = viewModel.selectedDate ?? Date()
-    return events.filter { $0.date.isSameDay(as: dateToCheck) }
+    return EventRecurrenceService.shared.occurrences(for: events, on: dateToCheck)
   }
 
   private var todosForSelectedDate: [TodoItem] {
     let dateToCheck = viewModel.selectedDate ?? Date()
-    return todosWithDueDate.filter { todo in
-      guard let dueDate = todo.dueDate else { return false }
-      return dueDate.isSameDay(as: dateToCheck)
+    return rootTodos.filter { todo in
+      effectiveCalendarDueDate(for: todo).isSameDay(as: dateToCheck)
     }
   }
 
   private var expensesForMonth: [Expense] {
     let startOfMonth = viewModel.currentMonth.startOfMonth
     let endOfMonth = viewModel.currentMonth.endOfMonth
-    let monthlyTemplateIds = Set(
-      expenseTemplates.filter { $0.frequencyEnum == .monthly }.map { $0.id })
+    let recurringTemplateIds = Set(expenseTemplates.map { $0.id })
 
     return expenses.filter {
-      $0.date >= startOfMonth && $0.date <= endOfMonth
-        && ($0.templateId != nil && monthlyTemplateIds.contains($0.templateId!))
+      guard let templateId = $0.templateId else { return false }
+      return $0.date >= startOfMonth && $0.date <= endOfMonth
+        && recurringTemplateIds.contains(templateId)
     }
   }
 
   private var expensesForSelectedDate: [Expense] {
     let dateToCheck = viewModel.selectedDate ?? Date()
-    let monthlyTemplateIds = Set(
-      expenseTemplates.filter { $0.frequencyEnum == .monthly }.map { $0.id })
+    let recurringTemplateIds = Set(expenseTemplates.map { $0.id })
 
     return expenses.filter {
-      $0.date.isSameDay(as: dateToCheck)
-        && ($0.templateId != nil && monthlyTemplateIds.contains($0.templateId!))
+      guard let templateId = $0.templateId else { return false }
+      return $0.date.isSameDay(as: dateToCheck)
+        && recurringTemplateIds.contains(templateId)
     }
   }
 
   private func addEvent(
-    title: String, notes: String?, color: String, date: Date, reminderInterval: TimeInterval?
+    title: String,
+    notes: String?,
+    color: String,
+    date: Date,
+    reminderInterval: TimeInterval?,
+    recurrenceType: RecurrenceType?,
+    recurrenceInterval: Int,
+    recurrenceEndDate: Date?
   ) {
     eventViewModel.addEvent(
-      date: date, title: title, notes: notes, color: color, reminderInterval: reminderInterval,
-      context: modelContext)
+      date: date,
+      title: title,
+      notes: notes,
+      color: color,
+      reminderInterval: reminderInterval,
+      recurrenceType: recurrenceType,
+      recurrenceInterval: recurrenceInterval,
+      recurrenceEndDate: recurrenceEndDate,
+      context: modelContext
+    )
   }
 
-  private func deleteEvent(_ event: Event) {
-    eventViewModel.deleteEvent(event, context: modelContext)
+  private func deleteEvent(_ occurrence: EventOccurrence) {
+    eventViewModel.deleteEventOccurrence(occurrence, scope: .thisAndFuture, context: modelContext)
+  }
+
+  private func effectiveCalendarDueDate(for todo: TodoItem) -> Date {
+    todo.dueDate ?? referenceDate.endOfDay
+  }
+
+  private func refreshReferenceDate() {
+    referenceDate = Date()
+  }
+
+  private func scheduleMidnightRefresh() {
+    midnightRefreshTask?.cancel()
+    midnightRefreshTask = Task {
+      while !Task.isCancelled {
+        let now = Date()
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now
+        let nextMidnight = tomorrow.startOfDay
+        let sleepInterval = max(nextMidnight.timeIntervalSince(now), 1)
+        let sleepNanoseconds = UInt64(sleepInterval * 1_000_000_000)
+        try? await Task.sleep(nanoseconds: sleepNanoseconds)
+        if Task.isCancelled { break }
+        await MainActor.run { referenceDate = Date() }
+      }
+    }
   }
 
   private let eventViewModel = EventViewModel()
@@ -313,11 +389,14 @@ struct WeekdayHeaderView: View {
       ForEach(adjustedWeekdays.indices, id: \.self) { idx in
         let day = adjustedWeekdays[idx]
         Text(day)
-          .font(.system(size: 11, weight: .bold))
+          .font(.system(size: 11, weight: .semibold, design: .rounded))
           .foregroundColor(Color.textTertiary)
           .frame(maxWidth: .infinity)
       }
     }
+    .padding(.horizontal, 10)
+    .padding(.vertical, 8)
+    .softControl(cornerRadius: 12, padding: 6)
     .padding(.horizontal, 16)
   }
 }
@@ -332,40 +411,47 @@ struct MonthHeaderView: View {
   var onTitleTap: (() -> Void)? = nil
 
   var body: some View {
-    VStack(spacing: 8) {
+    VStack(spacing: 10) {
       HStack(alignment: .center) {
         Button(action: onSettings) {
           Image(systemName: "gearshape.fill")
             .font(.system(size: 14, weight: .bold))
             .foregroundColor(.textSecondary)
             .frame(width: 36, height: 36)
-            .background(.ultraThinMaterial)
-            .clipShape(Circle())
-            .glassHalo(cornerRadius: 100)
+            .softControl(cornerRadius: 18, padding: 0)
         }
         .buttonStyle(.plain)
 
         Spacer()
 
         Button(action: { onTitleTap?() }) {
-          HStack(spacing: 4) {
+          HStack(spacing: 6) {
             Text(currentMonth.formattedMonthYear.localizedCapitalized)
-              .font(.system(size: 20, weight: .black, design: .rounded))
+              .font(Typography.title.weight(.bold))
               .foregroundColor(Color.textPrimary)
 
             Image(systemName: "chevron.down")
-              .font(.system(size: 12, weight: .bold))
+              .font(.system(size: 11, weight: .bold))
               .foregroundColor(Color.accentColor)
           }
+          .padding(.horizontal, 12)
+          .padding(.vertical, 6)
+          .softControl(cornerRadius: 12, padding: 0)
         }
         .buttonStyle(.plain)
 
         Spacer()
 
         Button(action: onAdd) {
-          Image(systemName: "plus.circle.fill")
-            .font(.system(size: 24))
-            .foregroundColor(.accentColor)
+          Image(systemName: "plus")
+            .font(.system(size: 14, weight: .bold))
+            .foregroundColor(.white)
+            .frame(width: 36, height: 36)
+            .background(
+              Circle()
+                .fill(Color.accentColor)
+            )
+            .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(.plain)
       }
@@ -375,19 +461,17 @@ struct MonthHeaderView: View {
         HStack(spacing: 4) {
           Button(action: onPrevious) {
             Image(systemName: "chevron.left")
-              .font(.system(size: 12, weight: .bold))
+              .font(.system(size: 12, weight: .semibold))
               .frame(width: 28, height: 28)
-              .background(.ultraThinMaterial)
-              .clipShape(Circle())
+              .softControl(cornerRadius: 14, padding: 0)
           }
           .buttonStyle(.plain)
 
           Button(action: onNext) {
             Image(systemName: "chevron.right")
-              .font(.system(size: 12, weight: .bold))
+              .font(.system(size: 12, weight: .semibold))
               .frame(width: 28, height: 28)
-              .background(.ultraThinMaterial)
-              .clipShape(Circle())
+              .softControl(cornerRadius: 14, padding: 0)
           }
           .buttonStyle(.plain)
         }
@@ -405,15 +489,13 @@ struct MonthHeaderView: View {
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(viewMode == mode ? .white : Color.textSecondary)
                 .frame(width: 32, height: 28)
-                .background(
-                  viewMode == mode
-                    ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.ultraThinMaterial)
-                )
+                .background(viewMode == mode ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.clear))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
           }
         }
+        .softControl(cornerRadius: 10, padding: 4)
       }
       .padding(.horizontal, 20)
     }

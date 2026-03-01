@@ -61,6 +61,13 @@ struct BudgetView: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 24) {
+        HStack {
+          Text(Localization.string(.expenseBudget))
+            .font(.system(size: 20, weight: .bold, design: .rounded))
+            .foregroundColor(.textPrimary)
+          Spacer()
+        }
+
         budgetsSection
 
         // Summary Cards
@@ -234,17 +241,15 @@ struct BudgetView: View {
         }
       }
 
-      if budgetLimits.isEmpty {
-        Text(Localization.string(.noBudgetsYet))
-          .font(.system(size: 13))
-          .foregroundColor(.secondary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(16)
-          .background(Color.secondaryFill)
-          .clipShape(RoundedRectangle(cornerRadius: 12))
-      } else {
-        ForEach(budgetLimits) { limit in
-          budgetProgressRow(for: limit)
+        if budgetLimits.isEmpty {
+          Text(Localization.string(.noBudgetsYet))
+            .font(.system(size: 13))
+            .foregroundColor(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .softCard(cornerRadius: 12, padding: 16, shadow: false)
+        } else {
+          ForEach(budgetLimits) { limit in
+            budgetProgressRow(for: limit)
         }
       }
     }
@@ -296,8 +301,7 @@ struct BudgetView: View {
       }
     }
     .padding(14)
-    .background(Color.secondaryFill)
-    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .softCard(cornerRadius: 12, padding: 14, shadow: false)
   }
 
   private func pauseTemplate(_ template: RecurringExpenseTemplate) {
@@ -408,9 +412,7 @@ struct BudgetSummaryCard: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding()
-    .background(Color(.systemGray6))
-    .cornerRadius(12)
+    .softCard(cornerRadius: 12, padding: 14, shadow: false)
   }
 }
 
@@ -472,9 +474,8 @@ struct TemplateRow: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      // Icon
       ZStack {
-        Circle()
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
           .fill(template.primaryCategory.color.opacity(0.2))
           .frame(width: 40, height: 40)
 
@@ -550,10 +551,7 @@ struct TemplateRow: View {
           .foregroundColor(.secondary)
       }
     }
-    .padding()
-    .background(Color(.systemBackground))
-    .cornerRadius(12)
-    .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+    .softCard(cornerRadius: 12, padding: 12, shadow: true)
   }
 
   private func formatDate(_ date: Date) -> String {

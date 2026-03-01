@@ -9,7 +9,7 @@ struct TimerControls: View {
   let onStop: () -> Void
 
   var body: some View {
-    HStack(spacing: 24) {
+    HStack(spacing: 16) {
       ControlButton(icon: "arrow.counterclockwise", action: onReset)
 
       if isRunning && !isPaused {
@@ -34,12 +34,8 @@ struct ControlButton: View {
       Image(systemName: icon)
         .font(.system(size: size * 0.35, weight: .semibold))
         .frame(width: size, height: size)
-        .foregroundColor(isPrimary ? .white : .primary)
+        .foregroundColor(isPrimary ? .white : .textPrimary)
         .background(backgroundView)
-        .overlay(
-          Circle()
-            .stroke(Color.border, lineWidth: 0.5)
-        )
     }
     .buttonStyle(.plain)
     .scaleEffect(1.0)
@@ -51,30 +47,42 @@ struct ControlButton: View {
     if isPrimary {
       Color.accentColor
         .clipShape(Circle())
+        .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
     } else {
       Circle()
-        .fill(Color.secondaryFill)
+        .fill(Color.secondaryFill.opacity(0.78))
+        .overlay(
+          Circle()
+            .stroke(Color.border.opacity(0.2), lineWidth: 0.7)
+        )
     }
   }
 }
 
 struct PressableScale: ViewModifier {
-  @State private var isPressed = false
+  let scale: CGFloat
+  let animation: Animation
+  @GestureState private var isPressed = false
 
   func body(content: Content) -> some View {
     content
-      .scaleEffect(isPressed ? 0.95 : 1.0)
-      .animation(.easeInOut(duration: 0.1), value: isPressed)
+      .scaleEffect(isPressed ? scale : 1.0)
+      .brightness(isPressed ? -0.02 : 0)
+      .animation(animation, value: isPressed)
       .simultaneousGesture(
         DragGesture(minimumDistance: 0)
-          .onChanged { _ in isPressed = true }
-          .onEnded { _ in isPressed = false }
+          .updating($isPressed) { _, state, _ in
+            state = true
+          }
       )
   }
 }
 
 extension View {
-  func pressableScale() -> some View {
-    modifier(PressableScale())
+  func pressableScale(
+    _ scale: CGFloat = 0.95,
+    animation: Animation = .spring(response: 0.22, dampingFraction: 0.82)
+  ) -> some View {
+    modifier(PressableScale(scale: scale, animation: animation))
   }
 }

@@ -4,9 +4,9 @@ import SwiftData
 /// Timeline mode for the Calendar tab — horizontal week strip + vertical hourly axis with event blocks.
 struct CalendarTimelineView: View {
   @Binding var selectedDate: Date
-  let events: [Event]
+  let events: [EventOccurrence]
   let expenses: [Expense]
-  let onEventTap: (Event) -> Void
+  let onEventTap: (EventOccurrence) -> Void
   let onDateSelect: (Date) -> Void
   let currentMonth: Date
 
@@ -14,16 +14,16 @@ struct CalendarTimelineView: View {
   private let endHour = 24
   private let hourHeight: CGFloat = 56
 
-  private var timelineEvents: [Event] {
-    events.filter { !$0.isHoliday && $0.date.isSameDay(as: selectedDate) }
+  private var timelineEvents: [EventOccurrence] {
+    events.filter { !$0.sourceEvent.isHoliday && $0.occurrenceDate.isSameDay(as: selectedDate) }
   }
 
   private var timelineExpenses: [Expense] {
     expenses.filter { $0.date.isSameDay(as: selectedDate) }
   }
 
-  private var allDayEvents: [Event] {
-    events.filter { $0.isHoliday && $0.date.isSameDay(as: selectedDate) }
+  private var allDayEvents: [EventOccurrence] {
+    events.filter { $0.sourceEvent.isHoliday && $0.occurrenceDate.isSameDay(as: selectedDate) }
   }
 
   var body: some View {
@@ -88,15 +88,6 @@ struct CalendarTimelineView: View {
                     startHour: startHour
                   )
                 }
-
-                // Expense blocks
-                ForEach(timelineExpenses) { expense in
-                  TimelineExpenseBlock(
-                    expense: expense,
-                    hourHeight: hourHeight,
-                    startHour: startHour
-                  )
-                }
               }
               .frame(width: timelineWidth)
             }
@@ -116,7 +107,7 @@ struct CalendarTimelineView: View {
               VStack(spacing: 12) {
                 Spacer()
                 ForEach(dayHolidays) { holiday in
-                  Text(holiday.title)
+                  Text(holiday.sourceEvent.title)
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
@@ -180,14 +171,14 @@ struct CalendarTimelineView: View {
 // MARK: - Event Block
 
 private struct TimelineEventBlock: View {
-  let event: Event
+  let event: EventOccurrence
   let hourHeight: CGFloat
   let startHour: Int
 
   private var topOffset: CGFloat {
     let cal = Calendar.current
-    let hour = cal.component(.hour, from: event.date)
-    let minute = cal.component(.minute, from: event.date)
+    let hour = cal.component(.hour, from: event.occurrenceDate)
+    let minute = cal.component(.minute, from: event.occurrenceDate)
     return CGFloat(hour - startHour) * hourHeight + CGFloat(minute) / 60.0 * hourHeight
   }
 
@@ -199,17 +190,17 @@ private struct TimelineEventBlock: View {
   var body: some View {
     HStack(spacing: 0) {
       RoundedRectangle(cornerRadius: 3)
-        .fill(Color.eventColor(named: event.color))
+        .fill(Color.eventColor(named: event.sourceEvent.color))
         .frame(width: 4)
 
       VStack(alignment: .leading, spacing: 2) {
-        Text(event.title)
+        Text(event.sourceEvent.title)
           .font(Typography.caption)
           .fontWeight(.semibold)
           .foregroundColor(Color.textPrimary)
           .lineLimit(1)
 
-        Text(event.date.formatted(date: .omitted, time: .shortened))
+        Text(event.occurrenceDate.formatted(date: .omitted, time: .shortened))
           .font(.system(size: 10))
           .foregroundColor(Color.textSecondary)
       }
@@ -219,7 +210,7 @@ private struct TimelineEventBlock: View {
       Spacer()
     }
     .frame(height: blockHeight)
-    .background(Color.eventColor(named: event.color).opacity(0.12))
+    .background(Color.eventColor(named: event.sourceEvent.color).opacity(0.12))
     .clipShape(RoundedRectangle(cornerRadius: 8))
     .padding(.leading, 60)  // After the hour label column
     .offset(y: topOffset)

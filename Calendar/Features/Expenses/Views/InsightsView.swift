@@ -21,12 +21,12 @@ struct InsightsView: View {
   }
   
   private var categoryBreakdown: [(category: ExpenseCategory, amount: Double, percentage: Double)] {
-    let total = currentMonthExpenses.reduce(0) { $0 + $1.amount }
+    let total = currentMonthExpenses.reduce(0) { $0 + viewModel.amountInUAH($1) }
     guard total > 0 else { return [] }
     
     let grouped = Dictionary(grouping: currentMonthExpenses) { $0.primaryCategory }
     return grouped.map { (category, expenses) in
-      let amount = expenses.reduce(0) { $0 + $1.amount }
+      let amount = expenses.reduce(0) { $0 + viewModel.amountInUAH($1) }
       return (category, amount, (amount / total) * 100)
     }.sorted { $0.amount > $1.amount }
   }
@@ -34,6 +34,13 @@ struct InsightsView: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 24) {
+        HStack {
+          Text(Localization.string(.expenseInsights))
+            .font(.system(size: 20, weight: .bold, design: .rounded))
+            .foregroundColor(.textPrimary)
+          Spacer()
+        }
+
         // Month-over-month trends
         if !lastMonthExpenses.isEmpty {
           VStack(alignment: .leading, spacing: 16) {
@@ -47,9 +54,7 @@ struct InsightsView: View {
               TrendRow(trend: trend)
             }
           }
-          .padding()
-          .background(Color(.systemGray6))
-          .cornerRadius(12)
+          .softCard(cornerRadius: 12, padding: 16, shadow: false)
         }
         
         // Category breakdown
@@ -68,9 +73,7 @@ struct InsightsView: View {
               )
             }
           }
-          .padding()
-          .background(Color(.systemGray6))
-          .cornerRadius(12)
+          .softCard(cornerRadius: 12, padding: 16, shadow: false)
         }
         
         
@@ -89,7 +92,8 @@ struct InsightsView: View {
               .foregroundColor(.secondary)
               .multilineTextAlignment(.center)
           }
-          .padding(.top, 60)
+          .softCard(cornerRadius: 14, padding: 20, shadow: false)
+          .padding(.top, 40)
         }
       }
       .padding(.horizontal, 20)
@@ -105,8 +109,8 @@ struct InsightsView: View {
     var trends: [Trend] = []
     
     for (category, currentExpenses) in currentGrouped {
-      let currentTotal = currentExpenses.reduce(0) { $0 + $1.amount }
-      let lastTotal = lastGrouped[category]?.reduce(0) { $0 + $1.amount } ?? 0
+      let currentTotal = currentExpenses.reduce(0) { $0 + viewModel.amountInUAH($1) }
+      let lastTotal = lastGrouped[category]?.reduce(0) { $0 + viewModel.amountInUAH($1) } ?? 0
       
       let change: Double
       if lastTotal > 0 {

@@ -89,6 +89,9 @@ struct SettingsSheet: View {
           }
         #endif
       }
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(Color.clear)
       .navigationTitle(Localization.string(.settings))
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -444,10 +447,10 @@ struct SettingsRow: View {
   var body: some View {
     HStack {
       Text(title)
-        .font(.system(size: 14))
+        .font(Typography.subheadline)
       Spacer()
       Text(value)
-        .font(.system(size: 14))
+        .font(Typography.subheadline)
         .foregroundColor(.secondary)
     }
     .padding(.horizontal, 16)

@@ -11,13 +11,21 @@ struct ClockView: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      // Custom Glass Picker for consistency
+      HStack {
+        Text(Localization.string(.tabClock))
+          .font(.system(size: 22, weight: .bold, design: .rounded))
+          .foregroundColor(.textPrimary)
+        Spacer()
+      }
+      .padding(.horizontal, 20)
+      .padding(.top, 8)
+
       HStack(spacing: 0) {
           Button {
-              withAnimation { selectedSection = .timer }
+              withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) { selectedSection = .timer }
           } label: {
               Text(Localization.string(.tabTimer))
-                  .font(.system(size: 13, weight: .bold))
+                  .font(.system(size: 13, weight: .semibold, design: .rounded))
                   .foregroundColor(selectedSection == .timer ? .white : .textSecondary)
                   .frame(maxWidth: .infinity)
                   .frame(height: 36)
@@ -27,10 +35,10 @@ struct ClockView: View {
           .buttonStyle(.plain)
           
           Button {
-              withAnimation { selectedSection = .alarm }
+              withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) { selectedSection = .alarm }
           } label: {
               Text(Localization.string(.tabAlarm))
-                  .font(.system(size: 13, weight: .bold))
+                  .font(.system(size: 13, weight: .semibold, design: .rounded))
                   .foregroundColor(selectedSection == .alarm ? .white : .textSecondary)
                   .frame(maxWidth: .infinity)
                   .frame(height: 36)
@@ -40,10 +48,8 @@ struct ClockView: View {
           .buttonStyle(.plain)
       }
       .padding(4)
-      .background(.ultraThinMaterial)
-      .clipShape(RoundedRectangle(cornerRadius: 14))
-      .glassHalo(cornerRadius: 14)
-      .padding(.horizontal, 60)
+      .softControl(cornerRadius: 14, padding: 4)
+      .padding(.horizontal, 20)
       .padding(.top, 10)
 
       ZStack {

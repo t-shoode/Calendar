@@ -16,7 +16,8 @@ struct AlarmView: View {
 
       Spacer()
     }
-    .padding()
+    .padding(.horizontal, 20)
+    .padding(.top, 12)
     .sheet(isPresented: $showingTimePicker) {
       TimePickerView { time in
         viewModel.createAlarm(time: time, context: modelContext)
@@ -79,8 +80,7 @@ struct AlarmCard: View {
         .accessibilityLabel(Localization.string(.delete))
       }
     }
-    .padding(24)
-    .cardStyle()
+    .softCard(cornerRadius: 18, padding: 20, shadow: true)
     .sheet(isPresented: $showingTimePicker) {
       TimePickerView(initialTime: alarm.time) { time in
         alarm.time = time
@@ -107,11 +107,11 @@ struct EmptyAlarmView: View {
   var body: some View {
     VStack(spacing: 32) {
       ZStack {
-        Circle()
+        RoundedRectangle(cornerRadius: 36, style: .continuous)
           .fill(Color.accentColor.opacity(0.1))
           .frame(width: 140, height: 140)
           .overlay(
-            Circle()
+            RoundedRectangle(cornerRadius: 36, style: .continuous)
               .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
           )
 

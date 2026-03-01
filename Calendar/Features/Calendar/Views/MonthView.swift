@@ -3,9 +3,10 @@ import SwiftUI
 struct MonthView: View {
   let currentMonth: Date
   let selectedDate: Date?
-  let events: [Event]
+  let events: [EventOccurrence]
   var todos: [TodoItem] = []
   var expenses: [Expense] = []
+  var effectiveTodoDueDate: (TodoItem) -> Date = { $0.dueDate ?? .distantFuture }
   let onSelectDate: (Date) -> Void
 
   private let calendar = Calendar.current
@@ -77,15 +78,12 @@ struct MonthView: View {
     .padding(.horizontal, 16)
   }
 
-  private func eventsForDate(_ date: Date) -> [Event] {
-    events.filter { $0.date.isSameDay(as: date) }
+  private func eventsForDate(_ date: Date) -> [EventOccurrence] {
+    events.filter { $0.occurrenceDate.isSameDay(as: date) }
   }
 
   private func todosForDate(_ date: Date) -> [TodoItem] {
-    todos.filter { todo in
-      guard let dueDate = todo.dueDate else { return false }
-      return dueDate.isSameDay(as: date) && !todo.isCompleted
-    }
+    todos.filter { effectiveTodoDueDate($0).isSameDay(as: date) && !$0.isCompleted }
   }
 
   private func expensesForDate(_ date: Date) -> [Expense] {

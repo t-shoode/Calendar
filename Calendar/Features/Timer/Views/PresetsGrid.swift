@@ -29,19 +29,18 @@ struct PresetButton: View {
 
   var body: some View {
     Button(action: action) {
-      GlassCard(cornerRadius: 16, material: .ultraThin) {
-          VStack(spacing: 0) {
-            Text("\(Int(preset.duration / 60))")
-              .font(.system(size: 26, weight: .black, design: .rounded))
-              .foregroundColor(.textPrimary)
-            Text(Localization.string(.minutesUnit).uppercased())
-              .font(.system(size: 9, weight: .black))
-              .tracking(1)
-              .foregroundColor(.accentColor)
-          }
-          .frame(maxWidth: .infinity)
-          .frame(height: 24)
+      VStack(spacing: 0) {
+        Text("\(Int(preset.duration / 60))")
+          .font(.system(size: 24, weight: .black, design: .rounded))
+          .foregroundColor(.textPrimary)
+        Text(Localization.string(.minutesUnit).uppercased())
+          .font(.system(size: 9, weight: .semibold, design: .rounded))
+          .tracking(1)
+          .foregroundColor(.accentColor)
       }
+      .frame(maxWidth: .infinity)
+      .frame(height: 24)
+      .softCard(cornerRadius: 14, padding: 12, shadow: false)
     }
     .buttonStyle(.plain)
   }

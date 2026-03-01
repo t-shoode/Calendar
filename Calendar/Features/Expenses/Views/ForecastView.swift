@@ -36,21 +36,27 @@ struct ForecastView: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 20) {
+        HStack {
+          Text(Localization.string(.forecast))
+            .font(.system(size: 20, weight: .bold, design: .rounded))
+            .foregroundColor(.textPrimary)
+          Spacer()
+        }
+
         Picker(Localization.string(.forecast), selection: $selectedWindow) {
           ForEach(ForecastWindow.allCases) { window in
             Text(window.title).tag(window)
           }
         }
         .pickerStyle(.segmented)
+        .softControl(cornerRadius: 12, padding: 4)
 
         if forecastDays.isEmpty {
           Text(Localization.string(.forecastNoData))
             .font(.system(size: 14))
             .foregroundColor(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(Color.secondaryFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .softCard(cornerRadius: 12, padding: 16, shadow: false)
         } else {
           VStack(alignment: .leading, spacing: 10) {
             Text(Localization.string(.forecastMonthlyTotals))
@@ -67,9 +73,7 @@ struct ForecastView: View {
               .padding(.vertical, 4)
             }
           }
-          .padding(16)
-          .background(Color.secondaryFill)
-          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .softCard(cornerRadius: 12, padding: 16, shadow: false)
 
           VStack(alignment: .leading, spacing: 10) {
             Text(Localization.string(.forecastDailyTotals))
@@ -86,9 +90,7 @@ struct ForecastView: View {
               }
             }
           }
-          .padding(16)
-          .background(Color.secondaryFill)
-          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .softCard(cornerRadius: 12, padding: 16, shadow: false)
         }
       }
       .padding(.horizontal, 20)

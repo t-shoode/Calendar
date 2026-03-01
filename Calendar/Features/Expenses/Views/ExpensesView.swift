@@ -110,37 +110,40 @@ struct ExpensesView: View {
       // Header with Segment Picker
       VStack(spacing: 16) {
         HStack {
-          Text(Localization.string(.expenseHeader))
-            .font(.system(size: 14, weight: .black))
-            .tracking(2)
-            .foregroundColor(.textSecondary)
+          Text(Localization.string(.tabExpenses))
+            .font(.system(size: 22, weight: .bold, design: .rounded))
+            .foregroundColor(.textPrimary)
 
           Spacer()
 
-          HStack(spacing: 16) {
+          HStack(spacing: 10) {
             Button {
               showingAddTemplate = true
             } label: {
-              Image(systemName: "plus.circle")
-                .font(.system(size: 16, weight: .semibold))
+              Image(systemName: "repeat.circle.fill")
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.accentColor)
             }
+            .softControl(cornerRadius: 12, padding: 8)
 
-            Button {
-              showingCSVImport = true
+            Menu {
+              Button {
+                showingCSVImport = true
+              } label: {
+                Label(Localization.string(.importFromBank), systemImage: "arrow.down.doc")
+              }
+
+              Button(role: .destructive) {
+                showingClearConfirmation = true
+              } label: {
+                Label(Localization.string(.clearAll), systemImage: "trash")
+              }
             } label: {
-              Image(systemName: "arrow.down.doc")
-                .font(.system(size: 16, weight: .semibold))
+              Image(systemName: "ellipsis.circle")
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.accentColor)
             }
-
-            Button {
-              showingClearConfirmation = true
-            } label: {
-              Image(systemName: "trash")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.red)
-            }
+            .softControl(cornerRadius: 12, padding: 8)
           }
         }
 
@@ -152,8 +155,8 @@ struct ExpensesView: View {
                 selectedSegment = segment
               }
             } label: {
-              Text(segment.displayName)
-                .font(.system(size: 13, weight: .bold))
+                Text(segment.displayName)
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundColor(selectedSegment == segment ? .white : .textSecondary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 36)
@@ -164,9 +167,7 @@ struct ExpensesView: View {
           }
         }
         .padding(4)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .glassHalo(cornerRadius: 14)
+        .softControl(cornerRadius: 14, padding: 4)
 
         // Period picker (only for History segment)
         if selectedSegment == .history {
@@ -178,7 +179,7 @@ struct ExpensesView: View {
                 }
               } label: {
                 Text(period.displayName)
-                  .font(.system(size: 12, weight: .bold))
+                  .font(.system(size: 12, weight: .semibold, design: .rounded))
                   .foregroundColor(selectedPeriod == period ? .white : .textSecondary)
                   .frame(maxWidth: .infinity)
                   .frame(height: 32)
@@ -191,8 +192,7 @@ struct ExpensesView: View {
             }
           }
           .padding(4)
-          .background(.ultraThinMaterial.opacity(0.5))
-          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .softControl(cornerRadius: 12, padding: 4)
         }
       }
       .padding(.horizontal, 20)
@@ -253,12 +253,12 @@ struct ExpensesView: View {
         showingAddExpense = true
       }) {
         Image(systemName: "plus")
-          .font(.system(size: 16, weight: .bold))
+          .font(.system(size: 20, weight: .bold))
           .foregroundColor(.white)
-          .frame(width: 40, height: 40)
+          .frame(width: 52, height: 52)
           .background(Color.accentColor)
           .clipShape(Circle())
-          .shadow(color: Color.accentColor.opacity(0.4), radius: 15, x: 0, y: 8)
+          .shadow(color: Color.accentColor.opacity(0.25), radius: 10, x: 0, y: 5)
       }
       .padding(.trailing, 20)
       .padding(.bottom, 80)
@@ -387,9 +387,7 @@ struct HistoryView: View {
               )
             }
           }
-          .padding(14)
-          .background(Color.secondaryFill)
-          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .softCard(cornerRadius: 12, padding: 14, shadow: false)
         }
 
         // Total Amount - split into Expenses and Income columns
@@ -488,15 +486,7 @@ struct HistoryView: View {
           }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 30)
-        .background(
-          ZStack {
-            Circle()
-              .fill(Color.accentColor.opacity(0.1))
-              .frame(width: 200, height: 200)
-              .blur(radius: 50)
-          }
-        )
+        .softCard(cornerRadius: 16, padding: 20, shadow: false)
 
         if expenses.isEmpty {
           VStack(spacing: 20) {
@@ -512,7 +502,7 @@ struct HistoryView: View {
           ForEach(viewModel.groupedByDate(expenses: expenses), id: \.date) { group in
             VStack(alignment: .leading, spacing: 12) {
               Text(group.date.formatted(date: .abbreviated, time: .omitted).uppercased())
-                .font(.system(size: 10, weight: .black))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundColor(.textTertiary)
                 .padding(.leading, 4)
 
@@ -594,6 +584,7 @@ private struct DuplicateSuggestionRow: View {
           onMerge()
         }
         .font(.system(size: 12, weight: .semibold))
+        .softControl(cornerRadius: 8, padding: 6)
 
         Spacer()
 
@@ -601,11 +592,11 @@ private struct DuplicateSuggestionRow: View {
           onDismiss()
         }
         .font(.system(size: 12, weight: .semibold))
+        .softControl(cornerRadius: 8, padding: 6)
       }
     }
     .padding(10)
-    .background(Color.primaryFill.opacity(0.5))
-    .clipShape(RoundedRectangle(cornerRadius: 10))
+    .softCard(cornerRadius: 10, padding: 10, shadow: false)
   }
 }
 

@@ -3,6 +3,7 @@ import SwiftUI
 struct SubtaskRow: View {
   let subtask: TodoItem
   let onToggle: () -> Void
+  let onTap: () -> Void
   let onDelete: () -> Void
 
   var body: some View {
@@ -17,6 +18,7 @@ struct SubtaskRow: View {
         .font(.system(size: 14))
         .strikethrough(subtask.isCompleted)
         .foregroundColor(subtask.isCompleted ? .secondary : .primary)
+        .lineLimit(1)
 
       Spacer()
 
@@ -27,7 +29,11 @@ struct SubtaskRow: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(.vertical, 4)
-    .padding(.leading, 32)
+    .padding(.vertical, 8)
+    .padding(.horizontal, 12)
+    .background(.ultraThinMaterial.opacity(0.35))
+    .clipShape(RoundedRectangle(cornerRadius: 10))
+    .contentShape(Rectangle())
+    .onTapGesture(perform: onTap)
   }
 }

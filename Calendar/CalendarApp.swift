@@ -80,8 +80,20 @@ struct ContentView: View {
         .animation(.easeOut(duration: 0.15), value: appState.selectedTab)
 
         // Floating Tab Bar
-        VStack {
+        VStack(spacing: 0) {
           Spacer()
+          LinearGradient(
+            colors: [
+              Color.clear,
+              Color.backgroundPrimary.opacity(0.35),
+              Color.backgroundPrimary.opacity(0.65),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+          )
+          .frame(height: 64)
+          .allowsHitTesting(false)
+
           FloatingTabBar(selectedTab: $appState.selectedTab)
         }
         .ignoresSafeArea(.keyboard)

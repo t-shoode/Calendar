@@ -48,9 +48,8 @@ struct CategoryCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       if category.depth == 0 {
-          GlassCard(cornerRadius: 20, material: .thin) {
-              categoryContent
-          }
+          categoryContent
+          .softCard(cornerRadius: 16, padding: 12, shadow: true)
           .padding(.bottom, 8)
       } else {
           categoryContent
@@ -88,7 +87,7 @@ struct CategoryCard: View {
               .foregroundColor(Color.textTertiary)
               .padding(.horizontal, 8)
               .padding(.vertical, 2)
-              .background(.ultraThinMaterial)
+              .softChip()
               .clipShape(Capsule())
           }
         }
@@ -151,7 +150,10 @@ struct CategoryCard: View {
       todo: todo,
       onToggle: { onTodoToggle(todo) },
       onTap: { onTodoTap(todo) },
-      onDelete: { onTodoDelete(todo) }
+      onDelete: { onTodoDelete(todo) },
+      onSubtaskToggle: { onTodoToggle($0) },
+      onSubtaskTap: { onTodoTap($0) },
+      onSubtaskDelete: { onTodoDelete($0) }
     )
   }
 }

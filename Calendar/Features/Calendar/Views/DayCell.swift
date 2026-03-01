@@ -5,7 +5,7 @@ struct DayCell: View {
   let isCurrentMonth: Bool
   let isSelected: Bool
   let isToday: Bool
-  let events: [Event]
+  let events: [EventOccurrence]
   var todos: [TodoItem] = []
   var expenses: [Expense] = []
 

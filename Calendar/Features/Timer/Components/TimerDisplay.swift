@@ -20,27 +20,22 @@ struct TimerDisplay: View {
 
   var body: some View {
     ZStack {
-      // Glow background
       Circle()
-        .fill(Color.accentColor.opacity(0.05))
-        .blur(radius: 40)
-
-      Circle()
-        .stroke(Color.textTertiary.opacity(0.1), lineWidth: 12)
+        .stroke(Color.textTertiary.opacity(0.14), lineWidth: 10)
 
       Circle()
         .trim(from: 0, to: progress)
         .stroke(
           LinearGradient(
-            colors: [.accentColor.opacity(0.7), .accentColor],
+            colors: [.accentColor.opacity(0.6), .accentColor],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
           ),
-          style: StrokeStyle(lineWidth: 12, lineCap: .round)
+          style: StrokeStyle(lineWidth: 10, lineCap: .round)
         )
         .rotationEffect(.degrees(-90))
-        .animation(.linear(duration: 0.1), value: progress)
-        .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 0)
+        .animation(.easeOut(duration: 0.25), value: progress)
+        .shadow(color: .accentColor.opacity(0.18), radius: 6, x: 0, y: 0)
 
       VStack(spacing: 8) {
           Text(formattedTime)
@@ -50,13 +45,14 @@ struct TimerDisplay: View {
           
           if isRunning {
               Text(isStopwatch ? "ELAPSED" : "REMAINING")
-                  .font(.system(size: 10, weight: .black))
+                  .font(.system(size: 10, weight: .semibold, design: .rounded))
                   .tracking(2)
                   .foregroundColor(.textTertiary)
           }
       }
     }
-    .frame(width: 280, height: 280)
+    .frame(width: 250, height: 250)
+    .softCard(cornerRadius: 140, padding: 18, shadow: false)
     .accessibilityLabel(Localization.string(.timeRemaining(formattedTime)))
   }
 }

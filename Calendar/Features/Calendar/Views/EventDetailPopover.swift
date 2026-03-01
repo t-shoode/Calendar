@@ -1,10 +1,13 @@
 import SwiftUI
 
 struct EventDetailPopover: View {
-  let event: Event
+  let occurrence: EventOccurrence
   let onDismiss: () -> Void
   var onEdit: (() -> Void)?
   var onDelete: (() -> Void)?
+
+  private var event: Event { occurrence.sourceEvent }
+  private var date: Date { occurrence.occurrenceDate }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -31,7 +34,7 @@ struct EventDetailPopover: View {
             }
 
             Text(
-              event.date.formatted(
+              date.formatted(
                 .dateTime.weekday(.wide).day().month(.wide).hour().minute()
                   .locale(Localization.locale))
             )

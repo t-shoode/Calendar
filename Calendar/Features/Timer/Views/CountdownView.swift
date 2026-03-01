@@ -10,8 +10,7 @@ struct CountdownView: View {
         remainingTime: viewModel.remainingTime, isRunning: viewModel.isRunning,
         isStopwatch: viewModel.isStopwatch
       )
-      .padding(.trailing, 20)
-      .padding(.bottom, 20)
+      .padding(.bottom, 16)
 
       TimerControls(
         isRunning: viewModel.isRunning,
@@ -43,13 +42,26 @@ struct CountdownView: View {
         }
       )
       .padding(.bottom, 20)
+      .softCard(cornerRadius: 24, padding: 14, shadow: false)
+      .padding(.horizontal, 24)
 
       if !viewModel.isRunning && !viewModel.isPaused && !presets.isEmpty {
-        PresetsGrid(presets: presets) { preset in
-          viewModel.stopTimer()
-          viewModel.selectedPreset = preset
-          viewModel.startTimer(duration: preset.duration)
+        VStack(alignment: .leading, spacing: 12) {
+          HStack {
+            Text(Localization.string(.timer))
+              .font(.system(size: 12, weight: .semibold, design: .rounded))
+              .foregroundColor(.textTertiary)
+            Spacer()
+          }
+
+          PresetsGrid(presets: presets) { preset in
+            viewModel.stopTimer()
+            viewModel.selectedPreset = preset
+            viewModel.startTimer(duration: preset.duration)
+          }
         }
+        .softCard(cornerRadius: 18, padding: 14, shadow: false)
+        .padding(.horizontal, 20)
       }
     }
   }

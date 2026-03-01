@@ -13,6 +13,14 @@ public struct WeatherView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
+                    HStack {
+                        Text(viewModel.weatherData?.city ?? Localization.string(.weather))
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundColor(.textPrimary)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+
                     // City Search / Header
                     VStack(spacing: 16) {
                         HStack {
@@ -25,9 +33,7 @@ public struct WeatherView: View {
                                 }
                         }
                         .padding(12)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .glassHalo(cornerRadius: 12)
+                        .softControl(cornerRadius: 12, padding: 0)
                         
                         if !viewModel.searchResults.isEmpty {
                             VStack(alignment: .leading, spacing: 0) {
@@ -59,9 +65,7 @@ public struct WeatherView: View {
                                     Divider()
                                 }
                             }
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .glassHalo(cornerRadius: 16)
+                            .softCard(cornerRadius: 16, padding: 0, shadow: false)
                         }
                     }
                     .padding(.horizontal)
@@ -71,15 +75,17 @@ public struct WeatherView: View {
                         currentWeatherHero(weather)
                         
                         // Hourly Forecast
-                        GlassCard(cornerRadius: 24, material: .thin) {
+                        VStack {
                             hourlyForecastSection(weather)
                         }
+                        .softCard(cornerRadius: 18, padding: 16, shadow: false)
                         .padding(.horizontal)
                         
                         // Weekly Forecast
-                        GlassCard(cornerRadius: 24, material: .thin) {
+                        VStack {
                             weeklyForecastSection(weather)
                         }
+                        .softCard(cornerRadius: 18, padding: 16, shadow: false)
                         .padding(.horizontal)
                     } else if viewModel.isLoading {
                         ProgressView()
@@ -105,7 +111,7 @@ public struct WeatherView: View {
             }
             .scrollDismissesKeyboard(.immediately)
         }
-        .navigationTitle(viewModel.weatherData?.city ?? Localization.string(.weather))
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
     }
     
@@ -133,7 +139,7 @@ public struct WeatherView: View {
                 }
                 
                 Text("\(Int(current.temperature))°")
-                    .font(.system(size: 96, weight: .thin, design: .rounded))
+                    .font(.system(size: 84, weight: .thin, design: .rounded))
                     .foregroundColor(.textPrimary)
                 
                 Text(current.code.description)
@@ -157,7 +163,8 @@ public struct WeatherView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 30)
+            .softCard(cornerRadius: 22, padding: 22, shadow: false)
+            .padding(.horizontal)
         }
     }
     

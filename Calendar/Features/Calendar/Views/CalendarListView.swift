@@ -3,25 +3,26 @@ import SwiftUI
 /// List mode for the Calendar tab — vertical date column on left, colored event cards on right.
 struct CalendarListView: View {
   let currentMonth: Date
-  let events: [Event]
+  let events: [EventOccurrence]
   let todos: [TodoItem]
   let expenses: [Expense]
-  let onEventTap: (Event) -> Void
+  var effectiveTodoDueDate: (TodoItem) -> Date = { $0.dueDate ?? .distantFuture }
+  let onEventTap: (EventOccurrence) -> Void
   let onDateSelect: (Date) -> Void
 
   private let calendar = Calendar.current
 
   /// All days in the current month that have at least one event or todo.
-  private var daysWithContent: [(date: Date, events: [Event], todos: [TodoItem], expenses: [Expense])] {
+  private var daysWithContent:
+    [(date: Date, events: [EventOccurrence], todos: [TodoItem], expenses: [Expense])]
+  {
     let start = currentMonth.startOfMonth
     let end = currentMonth.endOfMonth
-    var result: [(Date, [Event], [TodoItem], [Expense])] = []
+    var result: [(Date, [EventOccurrence], [TodoItem], [Expense])] = []
     var day = start
     while day <= end {
-      let dayEvents = events.filter { $0.date.isSameDay(as: day) }
-      let dayTodos = todos.filter {
-        ($0.dueDate ?? .distantFuture).isSameDay(as: day) && !$0.isCompleted
-      }
+      let dayEvents = events.filter { $0.occurrenceDate.isSameDay(as: day) }
+      let dayTodos = todos.filter { effectiveTodoDueDate($0).isSameDay(as: day) && !$0.isCompleted }
       let dayExpenses = expenses.filter { $0.date.isSameDay(as: day) }
       
       if !dayEvents.isEmpty || !dayTodos.isEmpty || !dayExpenses.isEmpty {
@@ -79,11 +80,11 @@ struct CalendarListView: View {
 
 private struct CalendarListDayRow: View {
   let date: Date
-  let events: [Event]
+  let events: [EventOccurrence]
   let todos: [TodoItem]
   let expenses: [Expense]
   let isToday: Bool
-  let onEventTap: (Event) -> Void
+  let onEventTap: (EventOccurrence) -> Void
   let onDateSelect: (Date) -> Void
 
   var body: some View {
@@ -125,34 +126,34 @@ private struct CalendarListDayRow: View {
 // MARK: - Event Card
 
 private struct CalendarListEventCard: View {
-  let event: Event
+  let event: EventOccurrence
 
   var body: some View {
     HStack(spacing: 10) {
       // Color bar
       RoundedRectangle(cornerRadius: 2)
-        .fill(Color.eventColor(named: event.color))
+        .fill(Color.eventColor(named: event.sourceEvent.color))
         .frame(width: 4)
 
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 6) {
-          Text(event.title)
+          Text(event.sourceEvent.title)
             .font(Typography.headline)
             .foregroundColor(Color.textPrimary)
             .lineLimit(1)
 
-          if event.isHoliday {
+          if event.sourceEvent.isHoliday {
             Image(systemName: "star.fill")
               .font(.system(size: 10))
               .foregroundColor(.eventTeal)
           }
         }
 
-        Text(event.date.formatted(date: .omitted, time: .shortened))
+        Text(event.occurrenceDate.formatted(date: .omitted, time: .shortened))
           .font(Typography.caption)
           .foregroundColor(Color.textSecondary)
 
-        if let notes = event.notes, !notes.isEmpty {
+        if let notes = event.sourceEvent.notes, !notes.isEmpty {
           Text(notes)
             .font(Typography.caption)
             .foregroundColor(Color.textTertiary)

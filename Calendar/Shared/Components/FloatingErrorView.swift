@@ -9,48 +9,42 @@ struct FloatingErrorView: View {
         VStack {
           HStack(alignment: .center, spacing: 12) {
             ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.2))
-                    .frame(width: 28, height: 28)
-                Image(systemName: "exclamationmark.triangle.fill")
-                  .font(.system(size: 14, weight: .bold))
-                  .foregroundColor(.white)
+              Circle()
+                .fill(Color.red.opacity(0.12))
+                .frame(width: 28, height: 28)
+              Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.red)
             }
-            
+
             Text(msg)
-              .foregroundColor(.white)
-              .font(.system(size: 14, weight: .bold))
+              .foregroundColor(.textPrimary)
+              .font(Typography.subheadline.weight(.semibold))
               .lineLimit(2)
               .multilineTextAlignment(.leading)
-            
+
             Spacer()
-            
+
             Button(action: { message = nil }) {
               Image(systemName: "xmark")
-                .foregroundColor(.white.opacity(0.6))
-                .font(.system(size: 14, weight: .black))
+                .foregroundColor(.textSecondary)
+                .font(.system(size: 13, weight: .black))
             }
             .buttonStyle(.plain)
+            .pressableScale(0.9)
           }
-          .padding(.vertical, 12)
-          .padding(.horizontal, 16)
-          .background(
-              ZStack {
-                  Color.red.opacity(0.8)
-                  Color.black.opacity(0.2)
-              }
-          )
-          .clipShape(RoundedRectangle(cornerRadius: 18))
-          .glassHalo(cornerRadius: 18)
-          .shadow(color: Color.red.opacity(0.4), radius: 15, x: 0, y: 8)
+          .softCard(cornerRadius: 14, padding: 12, shadow: true)
           .padding(.top, 12)
           .padding(.horizontal, 16)
-          
+
           Spacer()
         }
         .transition(.move(edge: .top).combined(with: .opacity))
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: msg)
+        .animation(.spring(response: 0.26, dampingFraction: 0.86), value: msg)
         .onTapGesture { message = nil }
+#if os(iOS)
+        .sensoryFeedback(.error, trigger: msg)
+#endif
       }
     }
     .onReceive(NotificationCenter.default.publisher(for: .appErrorOccurred)) { note in
