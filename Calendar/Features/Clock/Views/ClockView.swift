@@ -62,9 +62,12 @@ struct ClockView: View {
             .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
         }
       }
-      .frame(maxHeight: .infinity)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
       .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedSection)
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    .safeAreaPadding(.top, 4)
+    .safeAreaPadding(.bottom, 96)
     .background(Color.clear)
   }
 }

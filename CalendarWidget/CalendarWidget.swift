@@ -206,21 +206,21 @@ enum WidgetColorScheme {
 
   // Colors synced with the app's Color+Theme.swift design tokens
   var background: Color {
-    self == .dark ? Color(red: 0.05, green: 0.05, blue: 0.12) : Color(UIColor.systemBackground)
+    self == .dark ? Color(red: 0.07, green: 0.08, blue: 0.11) : Color(UIColor.systemBackground)
   }
   var surface: Color {
-    self == .dark ? Color.white.opacity(0.08) : Color(UIColor.secondarySystemGroupedBackground)
+    self == .dark ? Color.white.opacity(0.1) : Color(UIColor.secondarySystemGroupedBackground)
   }
   var surfaceElevated: Color {
-    self == .dark ? Color.white.opacity(0.05) : Color(UIColor.tertiarySystemFill)
+    self == .dark ? Color.white.opacity(0.06) : Color(UIColor.tertiarySystemFill)
   }
   var textPrimary: Color { Color(UIColor.label) }
   var textSecondary: Color { Color(UIColor.secondaryLabel) }
-  var accent: Color { .blue }
-  var todayHighlight: Color { .blue }
+  var accent: Color { Color(red: 0.12, green: 0.67, blue: 0.63) }
+  var todayHighlight: Color { accent }
   var iconMuted: Color { Color(UIColor.tertiaryLabel) }
   var divider: Color {
-    self == .dark ? Color.white.opacity(0.1) : Color(UIColor.separator)
+    self == .dark ? Color.white.opacity(0.12) : Color(UIColor.separator)
   }
 
   static func from(forcedColorScheme: String?, environment: ColorScheme) -> WidgetColorScheme {
@@ -338,7 +338,7 @@ struct MediumWidgetView: View {
   let scheme: WidgetColorScheme
 
   var body: some View {
-    VStack(spacing: 0) {
+    VStack(spacing: 8) {
       // Header: day name + status icons
       HStack(alignment: .center) {
         Text(
@@ -353,25 +353,32 @@ struct MediumWidgetView: View {
         TopRightIcons(entry: entry, scheme: scheme)
       }
 
-      Spacer(minLength: 6)
+      VStack(spacing: 4) {
+        // This week (label + day cell per column)
+        HStack(spacing: 0) {
+          ForEach(entry.thisWeek) { day in
+            DayColumn(day: day, scheme: scheme, cellSize: 34, labelSize: 9)
+              .frame(maxWidth: .infinity)
+          }
+        }
 
-      // This week (label + day cell per column)
-      HStack(spacing: 0) {
-        ForEach(entry.thisWeek) { day in
-          DayColumn(day: day, scheme: scheme, cellSize: 34, labelSize: 9)
-            .frame(maxWidth: .infinity)
+        // Next week
+        HStack(spacing: 0) {
+          ForEach(entry.nextWeek) { day in
+            DayCell(day: day, scheme: scheme, size: 34)
+              .frame(maxWidth: .infinity)
+          }
         }
       }
-
-      Spacer(minLength: 3)
-
-      // Next week
-      HStack(spacing: 0) {
-        ForEach(entry.nextWeek) { day in
-          DayCell(day: day, scheme: scheme, size: 34)
-            .frame(maxWidth: .infinity)
-        }
-      }
+      .padding(8)
+      .background(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .fill(scheme.surface)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+      )
     }
     .padding(.horizontal, 14)
     .padding(.top, 12)
@@ -389,7 +396,7 @@ struct LargeWidgetView: View {
   let scheme: WidgetColorScheme
 
   var body: some View {
-    VStack(spacing: 0) {
+    VStack(spacing: 10) {
       // Header
       HStack(alignment: .center) {
         Text(
@@ -404,33 +411,32 @@ struct LargeWidgetView: View {
         TopRightIcons(entry: entry, scheme: scheme, iconSize: 30)
       }
 
-      Spacer(minLength: 12)
+      VStack(spacing: 4) {
+        // This week (label + day cell per column)
+        HStack(spacing: 0) {
+          ForEach(entry.thisWeek) { day in
+            DayColumn(day: day, scheme: scheme, cellSize: 42, labelSize: 11)
+              .frame(maxWidth: .infinity)
+          }
+        }
 
-      // This week (label + day cell per column)
-      HStack(spacing: 0) {
-        ForEach(entry.thisWeek) { day in
-          DayColumn(day: day, scheme: scheme, cellSize: 42, labelSize: 11)
-            .frame(maxWidth: .infinity)
+        // Next week
+        HStack(spacing: 0) {
+          ForEach(entry.nextWeek) { day in
+            DayCell(day: day, scheme: scheme, size: 42)
+              .frame(maxWidth: .infinity)
+          }
         }
       }
-
-      Spacer(minLength: 4)
-
-      // Next week
-      HStack(spacing: 0) {
-        ForEach(entry.nextWeek) { day in
-          DayCell(day: day, scheme: scheme, size: 42)
-            .frame(maxWidth: .infinity)
-        }
-      }
-
-      Spacer(minLength: 16)
-
-      Rectangle()
-        .fill(scheme.divider)
-        .frame(height: 0.5)
-
-      Spacer(minLength: 14)
+      .padding(10)
+      .background(
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .fill(scheme.surface)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+      )
 
       // Status cards
       VStack(alignment: .leading, spacing: 10) {
@@ -469,8 +475,7 @@ struct LargeWidgetView: View {
           )
         }
       }
-
-      Spacer(minLength: 0)
+      .padding(.top, 4)
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 14)
@@ -516,17 +521,17 @@ struct TimerCircleIcon: View {
     hasHours ? size * 1.45 : size
   }
 
-  private var timerColor: Color { .blue }
+  private var activeTimerColor: Color { scheme.accent }
 
   var body: some View {
     ZStack {
       if hasHours {
         Capsule()
-          .stroke(entry.hasTimer ? timerColor : scheme.iconMuted, lineWidth: 2)
+          .stroke(entry.hasTimer ? activeTimerColor : scheme.iconMuted, lineWidth: 2)
           .frame(width: dynamicWidth, height: size)
       } else {
         Circle()
-          .stroke(entry.hasTimer ? timerColor : scheme.iconMuted, lineWidth: 2)
+          .stroke(entry.hasTimer ? activeTimerColor : scheme.iconMuted, lineWidth: 2)
           .frame(width: size, height: size)
       }
 
@@ -535,7 +540,7 @@ struct TimerCircleIcon: View {
           .font(
             .system(size: hasHours ? size * 0.26 : size * 0.28, weight: .bold, design: .monospaced)
           )
-          .foregroundColor(timerColor)
+          .foregroundColor(activeTimerColor)
           .minimumScaleFactor(0.4)
           .lineLimit(1)
           .frame(width: dynamicWidth - 6, height: size - 6)
@@ -928,16 +933,23 @@ struct StatusCard: View {
 @ViewBuilder
 func widgetGradientBackground(scheme: WidgetColorScheme) -> some View {
   if scheme == .dark {
-    // Matches the app's MeshGradient atmosphere
-    LinearGradient(
-      colors: [
-        Color(red: 0.05, green: 0.07, blue: 0.18),
-        Color(red: 0.04, green: 0.04, blue: 0.12),
-        Color(red: 0.06, green: 0.05, blue: 0.15)
-      ],
-      startPoint: .topLeading,
-      endPoint: .bottomTrailing
-    )
+    ZStack {
+      LinearGradient(
+        colors: [
+          Color(red: 0.08, green: 0.09, blue: 0.12),
+          Color(red: 0.06, green: 0.07, blue: 0.1),
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+      .ignoresSafeArea()
+
+      Circle()
+        .fill(Color(red: 0.12, green: 0.67, blue: 0.63).opacity(0.22))
+        .frame(width: 180, height: 180)
+        .blur(radius: 42)
+        .offset(x: 65, y: -70)
+    }
   } else {
     scheme.background
   }

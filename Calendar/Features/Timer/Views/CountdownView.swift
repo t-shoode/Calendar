@@ -64,5 +64,7 @@ struct CountdownView: View {
         .padding(.horizontal, 20)
       }
     }
+    .frame(maxWidth: .infinity, alignment: .top)
+    .padding(.bottom, 8)
   }
 }

@@ -450,7 +450,7 @@ struct CombinedWidgetEntryView: View {
                     Image(systemName: entry.weatherIcon)
                         .font(.system(size: 32, weight: .medium))
                         .foregroundColor(scheme.accent)
-                        .symbolRenderingMode(.multicolor)
+                        .symbolRenderingMode(.hierarchical)
 
                     Text("\(Int(entry.currentTemp))°")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -512,35 +512,57 @@ struct CombinedWidgetEntryView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(scheme.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+            )
+            .padding(.horizontal, 10)
+            .padding(.top, 8)
 
-            // Divider
-            Rectangle()
-                .fill(scheme.divider)
-                .frame(height: 0.5)
+            VStack(spacing: 0) {
+                // Divider
+                Rectangle()
+                    .fill(scheme.divider)
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 12)
+
+                // Upcoming Items Section (Todos/Expenses) - Always show 2 cells
+                HStack(spacing: 8) {
+                    // First cell - show item or placeholder
+                    if entry.upcomingItems.count > 0 {
+                        UpcomingItemCell(item: entry.upcomingItems[0], scheme: scheme)
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        UpcomingItemPlaceholderCell(scheme: scheme)
+                            .frame(maxWidth: .infinity)
+                    }
+                    
+                    // Second cell - show item or placeholder
+                    if entry.upcomingItems.count > 1 {
+                        UpcomingItemCell(item: entry.upcomingItems[1], scheme: scheme)
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        UpcomingItemPlaceholderCell(scheme: scheme)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
                 .padding(.horizontal, 12)
-
-            // Upcoming Items Section (Todos/Expenses) - Always show 2 cells
-            HStack(spacing: 8) {
-                // First cell - show item or placeholder
-                if entry.upcomingItems.count > 0 {
-                    UpcomingItemCell(item: entry.upcomingItems[0], scheme: scheme)
-                        .frame(maxWidth: .infinity)
-                } else {
-                    UpcomingItemPlaceholderCell(scheme: scheme)
-                        .frame(maxWidth: .infinity)
-                }
-                
-                // Second cell - show item or placeholder
-                if entry.upcomingItems.count > 1 {
-                    UpcomingItemCell(item: entry.upcomingItems[1], scheme: scheme)
-                        .frame(maxWidth: .infinity)
-                } else {
-                    UpcomingItemPlaceholderCell(scheme: scheme)
-                        .frame(maxWidth: .infinity)
-                }
+                .padding(.vertical, 6)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(scheme.surfaceElevated)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.white.opacity(0.06), lineWidth: 0.6)
+            )
+            .padding(.horizontal, 10)
+            .padding(.top, 8)
 
             // Divider
             Rectangle()
@@ -613,7 +635,7 @@ struct CombinedWeatherDayCell: View {
                 Image(systemName: weather.weatherIcon)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(scheme.accent)
-                    .symbolRenderingMode(.multicolor)
+                    .symbolRenderingMode(.hierarchical)
             } else {
                 Image(systemName: "questionmark.circle")
                     .font(.system(size: 14, weight: .medium))

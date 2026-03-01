@@ -57,27 +57,19 @@ struct ContentView: View {
           .animation(nil, value: appState.selectedTab)
 
         // Main Content Area
-        Group {
+        ZStack {
           if let selectedTab = appState.selectedTab {
-            switch selectedTab {
-            case .calendar:
-              NavigationStack { CalendarView() }
-            case .tasks:
-              NavigationStack { TodoView() }
-            case .expenses:
-              NavigationStack { ExpensesView() }
-            case .clock:
-              NavigationStack { ClockView() }
-            case .weather:
-              NavigationStack { WeatherView() }
-            }
+            tabContent(for: selectedTab)
+              .id(selectedTab)
+              .transition(.opacity)
           } else {
             Text(Localization.string(.selectTabPrompt))
+              .transition(.opacity)
           }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .animation(.easeInOut(duration: 0.16), value: appState.selectedTab)
         .opacity(1)
-        .animation(.easeOut(duration: 0.15), value: appState.selectedTab)
 
         // Floating Tab Bar
         VStack(spacing: 0) {
@@ -103,13 +95,13 @@ struct ContentView: View {
           .zIndex(10)
       }
       .disabled(splashVisible)
-      .opacity(splashVisible ? 0.98 : 1)
-      .animation(.easeOut(duration: 0.25), value: splashVisible)
+      .opacity(splashVisible ? 0 : 1)
+      .animation(.easeOut(duration: 0.22), value: splashVisible)
 
       // Keep SplashView mounted and controlled by `splashVisible`
       SplashView(manager: startupManager)
         .opacity(splashVisible ? 1 : 0)
-        .animation(.easeOut(duration: 0.25), value: splashVisible)
+        .animation(.easeOut(duration: 0.22), value: splashVisible)
         .allowsHitTesting(splashVisible)
         .accessibilityHidden(!splashVisible)
     }
@@ -128,6 +120,22 @@ struct ContentView: View {
           withAnimation { showSplash = false }
         }
       }
+    }
+  }
+
+  @ViewBuilder
+  private func tabContent(for selectedTab: AppState.Tab) -> some View {
+    switch selectedTab {
+    case .calendar:
+      NavigationStack { CalendarView() }
+    case .tasks:
+      NavigationStack { TodoView() }
+    case .expenses:
+      NavigationStack { ExpensesView() }
+    case .clock:
+      NavigationStack { ClockView() }
+    case .weather:
+      NavigationStack { WeatherView() }
     }
   }
 }

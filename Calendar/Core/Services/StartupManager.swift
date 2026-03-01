@@ -17,8 +17,8 @@ final class StartupManager: ObservableObject {
   private let minimumDisplayDuration: TimeInterval
   private var startDate: Date?
 
-  /// Inject a shorter timeout for tests. Default timeout = 120s, minimum display = 2.0s.
-  init(timeout: TimeInterval = 120, minimumDisplayDuration: TimeInterval = 2.0) {
+  /// Inject a shorter timeout for tests. Default timeout = 120s, minimum display = 0.8s.
+  init(timeout: TimeInterval = 120, minimumDisplayDuration: TimeInterval = 0.8) {
     self.timeout = timeout
     self.minimumDisplayDuration = minimumDisplayDuration
   }

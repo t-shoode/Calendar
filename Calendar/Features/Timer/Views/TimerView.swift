@@ -7,11 +7,16 @@ struct TimerView: View {
   @Environment(\.modelContext) private var modelContext
 
   var body: some View {
-    VStack(spacing: 6) {
-      CountdownView(viewModel: countdownViewModel, presets: presets)
-        .transition(.opacity)
+    ScrollView(showsIndicators: false) {
+      VStack(spacing: 6) {
+        CountdownView(viewModel: countdownViewModel, presets: presets)
+          .transition(.opacity)
+      }
+      .frame(maxWidth: .infinity)
+      .padding(.top, 8)
+      .padding(.bottom, 12)
     }
-    .padding(.top, 8)
+    .scrollBounceBehavior(.basedOnSize)
     .onAppear {
       if presets.isEmpty {
         for preset in TimerPreset.defaultPresets {

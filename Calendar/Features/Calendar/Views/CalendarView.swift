@@ -57,7 +57,7 @@ struct CalendarView: View {
             }
           }
         )
-        .padding(.top, 10)
+        .padding(.top, 24)
         .padding(.bottom, 6)
         .animation(nil, value: viewMode)
 
@@ -68,6 +68,7 @@ struct CalendarView: View {
             VStack(spacing: 8) {
               WeekdayHeaderView()
                 .padding(.top, 12)
+                .padding(.horizontal, 20)
 
               MonthView(
                 currentMonth: viewModel.currentMonth,
@@ -93,6 +94,7 @@ struct CalendarView: View {
               )
               .frame(height: 310)  // 6 rows with tighter spacing
               .softCard(cornerRadius: 16, padding: 10, shadow: false)
+              .padding(.horizontal, 20)
 
               Spacer(minLength: 0)
 
@@ -123,7 +125,6 @@ struct CalendarView: View {
                   }
                 }
               )
-              .padding(.bottom, 100)  // Space from floating tab bar
             }
             .gesture(
               DragGesture(minimumDistance: 50, coordinateSpace: .local)
@@ -182,10 +183,13 @@ struct CalendarView: View {
           .zIndex(1)
       }
     }
+    .safeAreaPadding(.top, 18)
+    .safeAreaPadding(.bottom, 96)
     .navigationBarHidden(true)  // We use custom header
     .sheet(isPresented: $showingAddEvent) {
       AddEventView(date: viewModel.selectedDate ?? Date()) {
-        title, notes, color, date, reminderInterval, recurrenceType, recurrenceInterval, recurrenceEndDate in
+        title, notes, color, date, reminderInterval, recurrenceType, recurrenceInterval,
+        recurrenceEndDate in
         addEvent(
           title: title,
           notes: notes,
@@ -374,6 +378,8 @@ struct CalendarView: View {
 }
 
 struct WeekdayHeaderView: View {
+  private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
+
   private var adjustedWeekdays: [String] {
     let symbols = Calendar.current.veryShortWeekdaySymbols  // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
     var week = symbols
@@ -383,7 +389,7 @@ struct WeekdayHeaderView: View {
   }
 
   var body: some View {
-    HStack(spacing: 0) {
+    LazyVGrid(columns: columns, spacing: 0) {
       // Use indices as the id because `veryShortWeekdaySymbols` contains duplicate short labels
       // (e.g. "S" appears twice). Relying on index ensures stable/unique identity for SwiftUI.
       ForEach(adjustedWeekdays.indices, id: \.self) { idx in
@@ -394,10 +400,9 @@ struct WeekdayHeaderView: View {
           .frame(maxWidth: .infinity)
       }
     }
-    .padding(.horizontal, 10)
-    .padding(.vertical, 8)
-    .softControl(cornerRadius: 12, padding: 6)
     .padding(.horizontal, 16)
+    .padding(.vertical, 8)
+    .softControl(cornerRadius: 12, padding: 0)
   }
 }
 
@@ -489,7 +494,9 @@ struct MonthHeaderView: View {
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(viewMode == mode ? .white : Color.textSecondary)
                 .frame(width: 32, height: 28)
-                .background(viewMode == mode ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.clear))
+                .background(
+                  viewMode == mode ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.clear)
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)

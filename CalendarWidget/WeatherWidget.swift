@@ -475,7 +475,7 @@ struct SmallWeatherWidgetView: View {
       Image(systemName: entry.weatherIcon)
         .font(.system(size: 48, weight: .medium))
         .foregroundColor(scheme.accent)
-        .symbolRenderingMode(.multicolor)
+        .symbolRenderingMode(.hierarchical)
 
       Text("\(Int(entry.currentTemp))°")
         .font(.system(size: 36, weight: .bold, design: .rounded))
@@ -503,7 +503,7 @@ struct MediumWeatherWidgetView: View {
           Image(systemName: entry.weatherIcon)
             .font(.system(size: 32, weight: .medium))
             .foregroundColor(scheme.accent)
-            .symbolRenderingMode(.multicolor)
+            .symbolRenderingMode(.hierarchical)
 
           Text("\(Int(entry.currentTemp))°")
             .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -532,24 +532,47 @@ struct MediumWeatherWidgetView: View {
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 8)
+      .background(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .fill(scheme.surface)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+      )
+      .padding(.horizontal, 10)
+      .padding(.top, 8)
 
       // Divider
-      Rectangle()
-        .fill(scheme.divider)
-        .frame(height: 0.5)
-        .padding(.horizontal, 12)
+      VStack(spacing: 0) {
+        Rectangle()
+          .fill(scheme.divider)
+          .frame(height: 0.5)
+          .padding(.horizontal, 12)
 
-      Spacer(minLength: 6)
+        Spacer(minLength: 6)
 
-      // Bottom: Week strip (NO weather icons)
-      HStack(spacing: 0) {
-        ForEach(entry.weekDays) { day in
-          DayColumnMedium(day: day, scheme: scheme)
-            .frame(maxWidth: .infinity)
+        // Bottom: Week strip (NO weather icons)
+        HStack(spacing: 0) {
+          ForEach(entry.weekDays) { day in
+            DayColumnMedium(day: day, scheme: scheme)
+              .frame(maxWidth: .infinity)
+          }
         }
+        .padding(.horizontal, 8)
+        .padding(.bottom, 8)
       }
-      .padding(.horizontal, 8)
-      .padding(.bottom, 8)
+      .background(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .fill(scheme.surfaceElevated)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .stroke(Color.white.opacity(0.06), lineWidth: 0.6)
+      )
+      .padding(.horizontal, 10)
+      .padding(.top, 8)
+      .padding(.bottom, 6)
     }
     .containerBackground(for: .widget) {
       widgetGradientBackground(scheme: scheme)
@@ -572,7 +595,7 @@ struct LargeWeatherWidgetView: View {
           Image(systemName: entry.weatherIcon)
             .font(.system(size: 40, weight: .medium))
             .foregroundColor(scheme.accent)
-            .symbolRenderingMode(.multicolor)
+            .symbolRenderingMode(.hierarchical)
 
           Text("\(Int(entry.currentTemp))°")
             .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -597,27 +620,49 @@ struct LargeWeatherWidgetView: View {
       }
       .padding(.horizontal, 16)
       .padding(.top, 16)
+      .background(
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .fill(scheme.surface)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+      )
+      .padding(.horizontal, 10)
+      .padding(.top, 10)
 
       Spacer(minLength: 12)
 
-      // Divider
-      Rectangle()
-        .fill(scheme.divider)
-        .frame(height: 0.5)
-        .padding(.horizontal, 12)
+      VStack(spacing: 0) {
+        // Divider
+        Rectangle()
+          .fill(scheme.divider)
+          .frame(height: 0.5)
+          .padding(.horizontal, 12)
 
-      Spacer(minLength: 12)
+        Spacer(minLength: 12)
 
-      // Large week strip with full weather info - use forecastDays
-      HStack(spacing: 8) {
-        ForEach(entry.forecastDays) { day in
-          ForecastDayLargeColumn(day: day, scheme: scheme)
-            .frame(maxWidth: .infinity)
+        // Large week strip with full weather info - use forecastDays
+        HStack(spacing: 8) {
+          ForEach(entry.forecastDays) { day in
+            ForecastDayLargeColumn(day: day, scheme: scheme)
+              .frame(maxWidth: .infinity)
+          }
         }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
       }
-      .padding(.horizontal, 12)
-
-      Spacer(minLength: 12)
+      .background(
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .fill(scheme.surfaceElevated)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .stroke(Color.white.opacity(0.06), lineWidth: 0.6)
+      )
+      .padding(.horizontal, 10)
+      .padding(.top, 10)
+      .padding(.bottom, 8)
     }
     .containerBackground(for: .widget) {
       widgetGradientBackground(scheme: scheme)
@@ -691,7 +736,7 @@ struct DayWeatherColumn: View {
       Image(systemName: day.weatherIcon)
         .font(.system(size: 16, weight: .medium))
         .foregroundColor(scheme.accent)
-        .symbolRenderingMode(.multicolor)
+        .symbolRenderingMode(.hierarchical)
 
       // Day number with event ring
       ZStack {
@@ -740,7 +785,7 @@ struct DayWeatherLargeColumn: View {
       Image(systemName: day.weatherIcon)
         .font(.system(size: 22, weight: .medium))
         .foregroundColor(scheme.accent)
-        .symbolRenderingMode(.multicolor)
+        .symbolRenderingMode(.hierarchical)
 
       // Min temp
       Text("\(Int(day.minTemp))°")
@@ -803,7 +848,7 @@ struct ForecastDayLargeColumn: View {
       Image(systemName: day.weatherIcon)
         .font(.system(size: 22, weight: .medium))
         .foregroundColor(scheme.accent)
-        .symbolRenderingMode(.multicolor)
+        .symbolRenderingMode(.hierarchical)
 
       // Min temp
       Text("\(Int(day.minTemp))°")
