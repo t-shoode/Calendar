@@ -3,7 +3,6 @@ import Foundation
 import SwiftData
 import SwiftUI
 import WidgetKit
-import os
 
 @MainActor
 final class StartupManager: ObservableObject {
@@ -59,19 +58,27 @@ final class StartupManager: ObservableObject {
       }
 
       // Data-only: prepare widget payloads (background context)
-      EventViewModel().syncEventsToWidget(context: backgroundContext)
-      Logging.log.debug("Startup: synced widget payloads (background)")
+      await MainActor.run {
+        EventViewModel().syncEventsToWidget(context: backgroundContext)
+      }
 
       // Generate recurring expenses (background context)
       await MainActor.run { self.progressMessage = Localization.string(.splashGeneratingRecurring) }
-      RecurringExpenseService.shared.generateRecurringExpenses(context: backgroundContext)
-      Logging.log.debug("Startup: recurring expense generation complete")
+      await MainActor.run {
+        RecurringExpenseService.shared.generateRecurringExpenses(context: backgroundContext)
+      }
 
       // Cleanup todos (background context)
       await MainActor.run { self.progressMessage = Localization.string(.splashCleaningTodos) }
-      TodoViewModel().cleanupCompletedTodos(context: backgroundContext)
-      TodoViewModel().rescheduleAllNotifications(context: backgroundContext)
-      Logging.log.debug("Startup: todo cleanup complete")
+      await MainActor.run {
+        TodoViewModel().cleanupCompletedTodos(context: backgroundContext)
+        TodoViewModel().rescheduleAllNotifications(context: backgroundContext)
+      }
+
+      // Refresh FX rates (loads cached rates first, then does a daily network refresh if needed)
+      await MainActor.run { self.progressMessage = Localization.string(.splashRefreshingFX) }
+      await FXRateService.shared.refreshRatesIfNeeded(context: backgroundContext)
+
       // Weather refresh must run on MainActor (updates @Published)
       await MainActor.run { self.progressMessage = Localization.string(.splashRefreshingWeather) }
       await Task { @MainActor in await WeatherViewModel().refreshIfNeeded() }.value

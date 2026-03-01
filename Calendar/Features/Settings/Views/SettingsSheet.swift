@@ -37,6 +37,8 @@ struct SettingsSheet: View {
   @State private var isSyncing = false
   @State private var syncMessage: String?
   @State private var showCountryPicker = false
+  @State private var editingFXCurrency: Currency = .usd
+  @State private var showFXEditor = false
 
   private var appVersion: String {
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -74,6 +76,10 @@ struct SettingsSheet: View {
         }
 
         Section {
+          fxSection
+        }
+
+        Section {
           holidaySection
         }
 
@@ -103,9 +109,79 @@ struct SettingsSheet: View {
         selectedLanguageName: $holidayLanguageName
       )
     }
+    .sheet(isPresented: $showFXEditor) {
+      FXRateEditorSheet(currency: editingFXCurrency) {
+        showFXEditor = false
+      }
+    }
+    .task {
+      await FXRateService.shared.refreshRatesIfNeeded(context: modelContext)
+    }
   }
 
   // MARK: - Holiday Section
+
+  private var fxSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text(Localization.string(.fxRates))
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundColor(.secondary)
+
+      VStack(spacing: 0) {
+        ForEach([Currency.usd, Currency.eur], id: \.rawValue) { currency in
+          Button {
+            editingFXCurrency = currency
+            showFXEditor = true
+          } label: {
+            HStack {
+              Text(currency.displayName)
+                .font(.system(size: 14))
+                .foregroundColor(.primary)
+
+              Spacer()
+
+              let currentRate = FXRateStore.shared.rateToUAH(for: currency)
+              Text("\(String(format: "%.2f", currentRate)) \(Currency.uah.displayName)")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+
+              if FXRateStore.shared.isManual(currency: currency) {
+                Text(Localization.string(.manual))
+                  .font(.system(size: 11, weight: .bold))
+                  .foregroundColor(.orange)
+                  .padding(.horizontal, 6)
+                  .padding(.vertical, 2)
+                  .background(Color.orange.opacity(0.16))
+                  .clipShape(Capsule())
+              }
+
+              Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+
+          if currency != .eur {
+            Divider().padding(.leading, 16)
+          }
+        }
+      }
+      .background(Color.secondaryFill)
+      .clipShape(RoundedRectangle(cornerRadius: 12))
+
+      if let updatedAt = FXRateStore.shared.lastUpdatedAt() {
+        Text(
+          Localization.string(
+            .fxLastUpdated(updatedAt.formatted(date: .abbreviated, time: .shortened))))
+        .font(.system(size: 12))
+        .foregroundColor(.secondary)
+      }
+    }
+  }
 
   private var holidaySection: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -298,6 +374,67 @@ struct SettingsSheet: View {
       }
     }
   #endif
+}
+
+private struct FXRateEditorSheet: View {
+  let currency: Currency
+  let onClose: () -> Void
+
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) private var modelContext
+
+  @State private var manualEnabled = false
+  @State private var rateText = ""
+
+  var body: some View {
+    NavigationStack {
+      Form {
+        Toggle(Localization.string(.fxManualOverride), isOn: $manualEnabled)
+
+        TextField(Localization.string(.fxRateToUAH), text: $rateText)
+          .keyboardType(.decimalPad)
+          .disabled(!manualEnabled)
+      }
+      .navigationTitle("\(currency.displayName) \(Localization.string(.fxRate))")
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button(Localization.string(.cancel)) {
+            close()
+          }
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button(Localization.string(.save)) {
+            save()
+          }
+        }
+      }
+      .onAppear {
+        manualEnabled = FXRateStore.shared.isManual(currency: currency)
+        rateText = String(format: "%.4f", FXRateStore.shared.rateToUAH(for: currency))
+      }
+    }
+  }
+
+  private func save() {
+    do {
+      if manualEnabled {
+        let normalized = rateText.replacingOccurrences(of: ",", with: ".")
+        let rate = Double(normalized) ?? 0
+        guard rate > 0 else { return }
+        try FXRateService.shared.setManualRate(currency: currency, rateToUAH: rate, context: modelContext)
+      } else {
+        try FXRateService.shared.clearManualRate(currency: currency, context: modelContext)
+      }
+      close()
+    } catch {
+      ErrorPresenter.presentOnMain(error)
+    }
+  }
+
+  private func close() {
+    onClose()
+    dismiss()
+  }
 }
 
 struct SettingsRow: View {

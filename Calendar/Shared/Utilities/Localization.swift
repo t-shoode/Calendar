@@ -120,6 +120,7 @@ public struct Localization {
     case splashSyncingWidgets
     case splashGeneratingRecurring
     case splashCleaningTodos
+    case splashRefreshingFX
     case splashRefreshingWeather
     case splashFinalizing
 
@@ -207,6 +208,11 @@ public struct Localization {
     case holiday
     case holidayNever
     case holidayApiKeyPlaceholder
+    case fxRates
+    case fxRate
+    case fxRateToUAH
+    case fxManualOverride
+    case fxLastUpdated(String)
 
     // Expenses
     case expenseWeekly
@@ -531,6 +537,8 @@ public struct Localization {
       return lang == .ukrainian ? "Генерація повторюваних записів…" : "Generating recurring items…"
     case .splashCleaningTodos:
       return lang == .ukrainian ? "Очищення завдань…" : "Cleaning up todos…"
+    case .splashRefreshingFX:
+      return lang == .ukrainian ? "Оновлення FX курсів…" : "Refreshing FX rates…"
     case .splashRefreshingWeather:
       return lang == .ukrainian ? "Оновлення погоди…" : "Refreshing weather…"
     case .splashFinalizing:
@@ -679,6 +687,16 @@ public struct Localization {
       return lang == .ukrainian ? "Ніколи" : "Never"
     case .holidayApiKeyPlaceholder:
       return lang == .ukrainian ? "Введіть API ключ" : "Enter API key"
+    case .fxRates:
+      return lang == .ukrainian ? "FX курси" : "FX Rates"
+    case .fxRate:
+      return lang == .ukrainian ? "Курс" : "Rate"
+    case .fxRateToUAH:
+      return lang == .ukrainian ? "Курс до UAH" : "Rate to UAH"
+    case .fxManualOverride:
+      return lang == .ukrainian ? "Ручне перевизначення" : "Manual override"
+    case .fxLastUpdated(let value):
+      return lang == .ukrainian ? "Оновлено: \(value)" : "Updated: \(value)"
 
     // Expenses
     case .expenseWeekly:
