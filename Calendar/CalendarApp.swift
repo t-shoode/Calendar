@@ -21,7 +21,7 @@ struct CalendarApp: App {
           .modelContainer(for: [
             Event.self, TodoItem.self, TodoCategory.self, Expense.self,
             RecurringExpenseTemplate.self, CSVImportSession.self, Alarm.self, TimerPreset.self,
-            TimerSession.self,
+            TimerSession.self, BudgetLimit.self, CashflowForecastCache.self,
           ])
       #else
         ContentView()
@@ -29,7 +29,7 @@ struct CalendarApp: App {
           .modelContainer(for: [
             Event.self, TodoItem.self, TodoCategory.self, Expense.self,
             RecurringExpenseTemplate.self, CSVImportSession.self, Alarm.self, TimerPreset.self,
-            TimerSession.self,
+            TimerSession.self, BudgetLimit.self, CashflowForecastCache.self,
           ])
       #endif
     }
@@ -106,7 +106,7 @@ struct ContentView: View {
       showSplash = true
       startupManager.start(using: modelContext)
     }
-    .onChange(of: startupManager.isRunning) { running in
+    .onChange(of: startupManager.isRunning) { _, running in
       if running {
         showSplash = true
       } else {

@@ -269,6 +269,10 @@ public struct Localization {
     case expenseHistory
     case expenseBudget
     case expenseInsights
+    case forecast
+    case forecastNoData
+    case forecastMonthlyTotals
+    case forecastDailyTotals
     case expensePeriodAll
     case expensePeriodWeekly
     case expensePeriodMonthly
@@ -855,6 +859,14 @@ public struct Localization {
       return lang == .ukrainian ? "Бюджет" : "Budget"
     case .expenseInsights:
       return lang == .ukrainian ? "Аналітика" : "Insights"
+    case .forecast:
+      return lang == .ukrainian ? "Прогноз" : "Forecast"
+    case .forecastNoData:
+      return lang == .ukrainian ? "Немає майбутніх витрат або доходів" : "No upcoming expenses or income"
+    case .forecastMonthlyTotals:
+      return lang == .ukrainian ? "Підсумки по місяцях" : "Monthly Totals"
+    case .forecastDailyTotals:
+      return lang == .ukrainian ? "Підсумки по днях" : "Daily Totals"
     case .expensePeriodAll:
       return lang == .ukrainian ? "Все" : "All"
     case .expensePeriodWeekly:

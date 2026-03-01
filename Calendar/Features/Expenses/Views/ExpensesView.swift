@@ -20,12 +20,14 @@ struct ExpensesView: View {
   enum ExpenseSegment: String, CaseIterable {
     case history = "History"
     case budget = "Budget"
+    case forecast = "Forecast"
     case insights = "Insights"
 
     var displayName: String {
       switch self {
       case .history: return Localization.string(.expenseHistory)
       case .budget: return Localization.string(.expenseBudget)
+      case .forecast: return Localization.string(.forecast)
       case .insights: return Localization.string(.expenseInsights)
       }
     }
@@ -211,6 +213,11 @@ struct ExpensesView: View {
             templates: templates,
             expenses: expenses,
             viewModel: viewModel
+          )
+        case .forecast:
+          ForecastView(
+            expenses: expenses,
+            templates: templates
           )
         case .insights:
           InsightsView(
