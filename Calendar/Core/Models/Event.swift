@@ -2,23 +2,40 @@ import Foundation
 import SwiftData
 
 @Model
-public class Event: Identifiable {
-  public var id: UUID
-  public var date: Date
-  public var title: String
-  public var notes: String?
-  public var color: String
-  public var createdAt: Date
+class Event: Identifiable {
+  var id: UUID
+  var date: Date
+  var title: String
+  var notes: String?
+  var color: String
+  var createdAt: Date
 
-  public var reminderInterval: TimeInterval?
+  var reminderInterval: TimeInterval?
+  var recurrenceType: String?
+  var recurrenceInterval: Int?
+  var recurrenceEndDate: Date?
 
   // Holiday support
-  public var isHoliday: Bool = false
-  public var holidayId: String?
+  var isHoliday: Bool = false
+  var holidayId: String?
 
-  public init(
+  var recurrenceTypeEnum: RecurrenceType? {
+    get { recurrenceType.flatMap { RecurrenceType(rawValue: $0) } }
+    set { recurrenceType = newValue?.rawValue }
+  }
+
+  var isRecurring: Bool {
+    recurrenceTypeEnum != nil
+  }
+
+  init(
     date: Date, title: String, notes: String? = nil, color: String = "blue",
-    reminderInterval: TimeInterval? = nil, isHoliday: Bool = false, holidayId: String? = nil
+    reminderInterval: TimeInterval? = nil,
+    recurrenceType: RecurrenceType? = nil,
+    recurrenceInterval: Int = 1,
+    recurrenceEndDate: Date? = nil,
+    isHoliday: Bool = false,
+    holidayId: String? = nil
   ) {
     self.id = UUID()
     self.date = date
@@ -26,6 +43,9 @@ public class Event: Identifiable {
     self.notes = notes
     self.color = color
     self.reminderInterval = reminderInterval
+    self.recurrenceType = recurrenceType?.rawValue
+    self.recurrenceInterval = recurrenceInterval
+    self.recurrenceEndDate = recurrenceEndDate
     self.createdAt = Date()
     self.isHoliday = isHoliday
     self.holidayId = holidayId

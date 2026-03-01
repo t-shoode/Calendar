@@ -97,4 +97,35 @@ final class RecurringExpenseTests: XCTestCase {
     XCTAssertEqual(result.updatedCount, 0)
     XCTAssertEqual(result.skippedManualCount, 1)
   }
+
+  func testGenerateRecurringExpenses_skipsInactiveTemplates() throws {
+    let template = RecurringExpenseTemplate(
+      title: "Streaming",
+      amount: 15.0,
+      merchant: "StreamCo",
+      frequency: .monthly,
+      startDate: Date()
+    )
+    template.isActive = false
+    context.insert(template)
+    try context.save()
+
+    RecurringExpenseService.shared.generateRecurringExpenses(context: context)
+
+    let expenses = try context.fetch(FetchDescriptor<Expense>())
+    XCTAssertTrue(expenses.isEmpty)
+  }
+
+  func testNotificationTriggerDate_schedulesAsapWhenDayBeforePassed() {
+    let calendar = Calendar.current
+    let dueDate = calendar.date(from: DateComponents(year: 2026, month: 3, day: 2, hour: 12))!
+    let now = calendar.date(from: DateComponents(year: 2026, month: 3, day: 1, hour: 10))!
+
+    let trigger = RecurringExpenseService.shared.notificationTriggerDate(
+      forDueDate: dueDate, now: now)
+    let expected = now.addingTimeInterval(5 * 60)
+
+    XCTAssertNotNil(trigger)
+    XCTAssertEqual(trigger!.timeIntervalSince1970, expected.timeIntervalSince1970, accuracy: 1.0)
+  }
 }

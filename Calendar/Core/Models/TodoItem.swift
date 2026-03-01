@@ -83,6 +83,20 @@ class TodoItem {
     parentTodo != nil
   }
 
+  var hasSubtasks: Bool {
+    !(subtasks?.isEmpty ?? true)
+  }
+
+  var isParentCompletionDerived: Bool {
+    hasSubtasks
+  }
+
+  var subtaskProgress: (completed: Int, total: Int) {
+    let allSubtasks = subtasks ?? []
+    let completedCount = allSubtasks.filter(\.isCompleted).count
+    return (completed: completedCount, total: allSubtasks.count)
+  }
+
   init(
     title: String,
     notes: String? = nil,

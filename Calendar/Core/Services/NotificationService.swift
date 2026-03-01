@@ -63,7 +63,7 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
   // MARK: - Event Notifications
 
-  func syncEventNotifications(events: [Event]) {
+  func syncEventNotifications(occurrences: [EventOccurrence]) {
     // 1. Cancel all existing event notifications to prevent duplicates/stale data
     UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
       let eventIdentifiers =
@@ -77,36 +77,39 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
       // 2. Schedule notifications for upcoming events (limit to 50 to respect OS limits)
       // Filter: Has reminder, is in future
       let upcomingEvents =
-        events
-        .filter { event in
-          guard let offset = event.reminderInterval, offset > 0 else { return false }
-          let notifyDate = event.date.addingTimeInterval(-offset)
+        occurrences
+        .filter { occurrence in
+          guard let offset = occurrence.sourceEvent.reminderInterval, offset > 0 else { return false }
+          let notifyDate = occurrence.occurrenceDate.addingTimeInterval(-offset)
           return notifyDate > Date()
         }
-        .sorted { $0.date < $1.date }
+        .sorted { $0.occurrenceDate < $1.occurrenceDate }
         .prefix(50)
 
-      for event in upcomingEvents {
-        self.scheduleEventNotification(event: event)
+      for occurrence in upcomingEvents {
+        self.scheduleEventNotification(occurrence: occurrence)
       }
 
       // print(" synced \(upcomingEvents.count) event notifications")
     }
   }
 
-  private func scheduleEventNotification(event: Event) {
+  private func scheduleEventNotification(occurrence: EventOccurrence) {
+    let event = occurrence.sourceEvent
     guard let offset = event.reminderInterval, offset > 0 else { return }
-    let notifyDate = event.date.addingTimeInterval(-offset)
+    let notifyDate = occurrence.occurrenceDate.addingTimeInterval(-offset)
 
     let content = UNMutableNotificationContent()
     content.title = event.title
-    content.body = "Upcoming event at \(event.date.formatted(date: .omitted, time: .shortened))"
+    content.body =
+      "Upcoming event at \(occurrence.occurrenceDate.formatted(date: .omitted, time: .shortened))"
     content.sound = .default
 
     let components = Calendar.current.dateComponents(
       [.year, .month, .day, .hour, .minute, .second], from: notifyDate)
     let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-    let identifier = "event-\(event.id.uuidString)"
+    let identifier =
+      "event-\(event.id.uuidString)-\(Int64(occurrence.occurrenceDate.timeIntervalSince1970))"
 
     let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 

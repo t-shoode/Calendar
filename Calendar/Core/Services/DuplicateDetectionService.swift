@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import os
 
 final class DuplicateDetectionService {
   static let shared = DuplicateDetectionService()
@@ -88,12 +89,12 @@ final class DuplicateDetectionService {
   }
 
   func mergeSuggestion(_ suggestion: DuplicateSuggestion, context: ModelContext) throws {
-    let descriptor = FetchDescriptor<Expense>(
-      predicate: #Predicate { expense in
-        expense.id == suggestion.expenseIdA || expense.id == suggestion.expenseIdB
-      }
-    )
-    let matches = try context.fetch(descriptor)
+    // Avoid a complex disjunction predicate here to keep SwiftData predicate type-checking stable
+    // across compiler versions.
+    let allExpenses = try context.fetch(FetchDescriptor<Expense>())
+    let matches = allExpenses.filter {
+      $0.id == suggestion.expenseIdA || $0.id == suggestion.expenseIdB
+    }
     guard matches.count == 2 else {
       suggestion.statusEnum = .dismissed
       try context.save()

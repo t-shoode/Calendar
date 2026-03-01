@@ -104,6 +104,13 @@
 		F5A362E32F40879300030163 /* TemplateSuggestionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A362E22F40879300030163 /* TemplateSuggestionCard.swift */; };
 		F5A362E52F408C6600030163 /* AddTemplateSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A362E42F408C6600030163 /* AddTemplateSheet.swift */; };
 		F5A362E72F4091E700030163 /* EditTemplateSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A362E62F4091E700030163 /* EditTemplateSheet.swift */; };
+		F5B897C02F54A7610027C977 /* EventOccurrence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B897BF2F54A7610027C977 /* EventOccurrence.swift */; };
+		F5B897C22F54A76D0027C977 /* EventRecurrenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B897C12F54A76D0027C977 /* EventRecurrenceService.swift */; };
+		F5B897C82F54A7820027C977 /* WidgetSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B897C72F54A7820027C977 /* WidgetSyncTests.swift */; };
+		F5B897C92F54A7820027C977 /* EventRecurrenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B897C32F54A7820027C977 /* EventRecurrenceTests.swift */; };
+		F5B897CA2F54A7820027C977 /* ExpenseConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B897C42F54A7820027C977 /* ExpenseConversionTests.swift */; };
+		F5B897CB2F54A7820027C977 /* ForbiddenPatternsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B897C52F54A7820027C977 /* ForbiddenPatternsTests.swift */; };
+		F5B897CC2F54A7820027C977 /* RecurringExpenseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B897C62F54A7820027C977 /* RecurringExpenseTests.swift */; };
 		F5BCFC992F34C45D0025B2E6 /* DebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5BCFC972F34C45D0025B2E6 /* DebugView.swift */; };
 		F5BCFC9A2F34C45D0025B2E6 /* DebugSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5BCFC962F34C45D0025B2E6 /* DebugSettings.swift */; };
 		F5D65F462F4212F6004F7A39 /* StartupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D65F452F4212F6004F7A39 /* StartupManager.swift */; };
@@ -275,6 +282,13 @@
 		F5A362E22F40879300030163 /* TemplateSuggestionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSuggestionCard.swift; sourceTree = "<group>"; };
 		F5A362E42F408C6600030163 /* AddTemplateSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTemplateSheet.swift; sourceTree = "<group>"; };
 		F5A362E62F4091E700030163 /* EditTemplateSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTemplateSheet.swift; sourceTree = "<group>"; };
+		F5B897BF2F54A7610027C977 /* EventOccurrence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventOccurrence.swift; sourceTree = "<group>"; };
+		F5B897C12F54A76D0027C977 /* EventRecurrenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRecurrenceService.swift; sourceTree = "<group>"; };
+		F5B897C32F54A7820027C977 /* EventRecurrenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRecurrenceTests.swift; sourceTree = "<group>"; };
+		F5B897C42F54A7820027C977 /* ExpenseConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseConversionTests.swift; sourceTree = "<group>"; };
+		F5B897C52F54A7820027C977 /* ForbiddenPatternsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForbiddenPatternsTests.swift; sourceTree = "<group>"; };
+		F5B897C62F54A7820027C977 /* RecurringExpenseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecurringExpenseTests.swift; sourceTree = "<group>"; };
+		F5B897C72F54A7820027C977 /* WidgetSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSyncTests.swift; sourceTree = "<group>"; };
 		F5BCFC962F34C45D0025B2E6 /* DebugSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSettings.swift; sourceTree = "<group>"; };
 		F5BCFC972F34C45D0025B2E6 /* DebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugView.swift; sourceTree = "<group>"; };
 		F5D65F452F4212F6004F7A39 /* StartupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupManager.swift; sourceTree = "<group>"; };
@@ -446,6 +460,7 @@
 				F593C0EA2F33C234007F8DEB /* TimerPreset.swift */,
 				F5A362D02F40875300030163 /* CSVImportSession.swift */,
 				F5E000032F50000100AA0001 /* DuplicateSuggestion.swift */,
+				F5B897BF2F54A7610027C977 /* EventOccurrence.swift */,
 				F5E000042F50000100AA0001 /* FXRate.swift */,
 				F5A362D12F40875300030163 /* RecurringExpenseTemplate.swift */,
 				F593C0EB2F33C234007F8DEB /* TimerSession.swift */,
@@ -467,6 +482,7 @@
 				F593C0EE2F33C234007F8DEB /* NotificationService.swift */,
 				F5A362D42F40876200030163 /* CSVImportService.swift */,
 				F5E000062F50000100AA0001 /* DuplicateDetectionService.swift */,
+				F5B897C12F54A76D0027C977 /* EventRecurrenceService.swift */,
 				F5E000072F50000100AA0001 /* FXRateService.swift */,
 				F5E000082F50000100AA0001 /* FXRateStore.swift */,
 				F5E000092F50000100AA0001 /* ForecastService.swift */,
@@ -773,6 +789,11 @@
 				F5D65F492F4213D0004F7A39 /* CalendarTests.swift */,
 				F5E0000C2F50000100AA0001 /* DuplicateDetectionServiceTests.swift */,
 				F5E0000D2F50000100AA0001 /* FXRateServiceTests.swift */,
+				F5B897C32F54A7820027C977 /* EventRecurrenceTests.swift */,
+				F5B897C42F54A7820027C977 /* ExpenseConversionTests.swift */,
+				F5B897C52F54A7820027C977 /* ForbiddenPatternsTests.swift */,
+				F5B897C62F54A7820027C977 /* RecurringExpenseTests.swift */,
+				F5B897C72F54A7820027C977 /* WidgetSyncTests.swift */,
 				F5E0000E2F50000100AA0001 /* ForecastServiceTests.swift */,
 				F5D65F4A2F4213D0004F7A39 /* StartupManagerTests.swift */,
 				F5D65F4B2F4213D0004F7A39 /* TodoCategoryTests.swift */,
@@ -1015,12 +1036,14 @@
 				F51F1B462F3BD2FA007A3F3E /* FloatingErrorView.swift in Sources */,
 				F5E000132F50000100AA0001 /* FXRate.swift in Sources */,
 				F5E000162F50000100AA0001 /* FXRateService.swift in Sources */,
+				F5B897C22F54A76D0027C977 /* EventRecurrenceService.swift in Sources */,
 				F5E000172F50000100AA0001 /* FXRateStore.swift in Sources */,
 				F554EFE62F34F4AA008B6601 /* TodoCategory.swift in Sources */,
 				F554EFE72F34F4AA008B6601 /* TodoItem.swift in Sources */,
 				F593C12F2F33C234007F8DEB /* Event.swift in Sources */,
 				F593C1302F33C234007F8DEB /* Date+Extensions.swift in Sources */,
 				F554F0002F34F99C008B6601 /* TopBarView.swift in Sources */,
+				F5B897C02F54A7610027C977 /* EventOccurrence.swift in Sources */,
 				F593C1312F33C234007F8DEB /* AlarmView.swift in Sources */,
 				F593C1322F33C234007F8DEB /* DayCell.swift in Sources */,
 				F593C1332F33C234007F8DEB /* TimerViewModel.swift in Sources */,
@@ -1082,6 +1105,11 @@
 				F5E0001B2F50000100AA0001 /* DuplicateDetectionServiceTests.swift in Sources */,
 				F5E0001C2F50000100AA0001 /* FXRateServiceTests.swift in Sources */,
 				F5E0001D2F50000100AA0001 /* ForecastServiceTests.swift in Sources */,
+				F5B897C82F54A7820027C977 /* WidgetSyncTests.swift in Sources */,
+				F5B897C92F54A7820027C977 /* EventRecurrenceTests.swift in Sources */,
+				F5B897CA2F54A7820027C977 /* ExpenseConversionTests.swift in Sources */,
+				F5B897CB2F54A7820027C977 /* ForbiddenPatternsTests.swift in Sources */,
+				F5B897CC2F54A7820027C977 /* RecurringExpenseTests.swift in Sources */,
 				F5D65F5D2F421480004F7A39 /* TodoCategoryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

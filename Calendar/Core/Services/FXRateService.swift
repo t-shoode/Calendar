@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import os
 
 final class FXRateService {
   static let shared = FXRateService()

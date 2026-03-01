@@ -70,6 +70,16 @@ class ExpenseViewModel {
 
   // MARK: - Aggregation
 
+  func amountInUAH(_ expense: Expense) -> Double {
+    let rate = FXRateStore.shared.rateToUAH(for: expense.currencyEnum)
+    return expense.amount * rate
+  }
+
+  func amountInUAH(_ template: RecurringExpenseTemplate) -> Double {
+    let rate = FXRateStore.shared.rateToUAH(for: template.currencyEnum)
+    return template.amount * rate
+  }
+
   func totalForPeriod(expenses: [Expense], start: Date, end: Date, isIncome: Bool? = nil) -> Double
   {
     expenses

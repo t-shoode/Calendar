@@ -59,10 +59,27 @@ class RecurringExpenseTemplate {
     guard frequency != .oneTime else { return nil }
     
     let calendar = Calendar.current
-    
-    // Step from startDate by adding N periods until we find a date after baseDate
-    var multiplier = 1
-    while multiplier < 500 {
+
+    if baseDate < startDate {
+      return startDate
+    }
+
+    // Estimate a starting multiplier to avoid linear scans for older templates.
+    let estimatedMultiplier: Int
+    switch frequency {
+    case .weekly:
+      estimatedMultiplier =
+        calendar.dateComponents([.weekOfYear], from: startDate, to: baseDate).weekOfYear ?? 0
+    case .monthly:
+      estimatedMultiplier = calendar.dateComponents([.month], from: startDate, to: baseDate).month ?? 0
+    case .yearly:
+      estimatedMultiplier = calendar.dateComponents([.year], from: startDate, to: baseDate).year ?? 0
+    case .oneTime:
+      return nil
+    }
+
+    var multiplier = max(0, estimatedMultiplier)
+    while true {
       let candidateDate: Date?
       switch frequency {
       case .weekly:
@@ -74,15 +91,14 @@ class RecurringExpenseTemplate {
       case .oneTime:
         return nil
       }
-      
+
       guard let candidate = candidateDate else { return nil }
-      
+
       if candidate > baseDate {
         return candidate
       }
       multiplier += 1
     }
-    return nil
   }
   
   /// Check if template is currently paused

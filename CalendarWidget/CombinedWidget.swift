@@ -622,7 +622,7 @@ struct CombinedWeatherDayCell: View {
             
             // Min/Max temps (small)
             if let weather = weather {
-                Text("\(Int(weather.maxTemp))°/\(Int(weather.minTemp))°")
+                Text("\(Int(weather.minTemp))°/\(Int(weather.maxTemp))°")
                     .font(.system(size: 7, weight: .medium, design: .rounded))
                     .foregroundColor(scheme.textSecondary)
                     .lineLimit(1)

@@ -2,13 +2,26 @@ import SwiftData
 import SwiftUI
 import WidgetKit
 
+enum EventEditScope {
+  case thisAndFuture
+}
+
 class EventViewModel {
   func addEvent(
     date: Date, title: String, notes: String?, color: String, reminderInterval: TimeInterval?,
+    recurrenceType: RecurrenceType?, recurrenceInterval: Int, recurrenceEndDate: Date?,
     context: ModelContext
   ) {
     let event = Event(
-      date: date, title: title, notes: notes, color: color, reminderInterval: reminderInterval)
+      date: date,
+      title: title,
+      notes: notes,
+      color: color,
+      reminderInterval: reminderInterval,
+      recurrenceType: recurrenceType,
+      recurrenceInterval: recurrenceInterval,
+      recurrenceEndDate: recurrenceEndDate
+    )
     context.insert(event)
     do {
       try context.save()
@@ -20,13 +33,19 @@ class EventViewModel {
   }
 
   func updateEvent(
-    _ event: Event, title: String, notes: String?, color: String, reminderInterval: TimeInterval?,
+    _ event: Event, title: String, notes: String?, color: String, date: Date,
+    reminderInterval: TimeInterval?, recurrenceType: RecurrenceType?, recurrenceInterval: Int,
+    recurrenceEndDate: Date?,
     context: ModelContext
   ) {
     event.title = title
     event.notes = notes
     event.color = color
+    event.date = date
     event.reminderInterval = reminderInterval
+    event.recurrenceTypeEnum = recurrenceType
+    event.recurrenceInterval = recurrenceInterval
+    event.recurrenceEndDate = recurrenceEndDate
     do {
       try context.save()
       rescheduleAllNotifications(context: context)
@@ -34,6 +53,65 @@ class EventViewModel {
     } catch {
       ErrorPresenter.shared.present(error)
     }
+  }
+
+  func updateEventOccurrence(
+    _ occurrence: EventOccurrence,
+    title: String,
+    notes: String?,
+    color: String,
+    date: Date,
+    reminderInterval: TimeInterval?,
+    recurrenceType: RecurrenceType?,
+    recurrenceInterval: Int,
+    recurrenceEndDate: Date?,
+    scope: EventEditScope = .thisAndFuture,
+    context: ModelContext
+  ) {
+    switch scope {
+    case .thisAndFuture:
+      break
+    }
+
+    let source = occurrence.sourceEvent
+    let isAnchorOccurrence = occurrence.occurrenceDate == source.date
+    if !isAnchorOccurrence && source.isRecurring {
+      source.recurrenceEndDate = occurrence.occurrenceDate.startOfDay.addingTimeInterval(-1)
+
+      let newSeries = Event(
+        date: date,
+        title: title,
+        notes: notes,
+        color: color,
+        reminderInterval: reminderInterval,
+        recurrenceType: recurrenceType,
+        recurrenceInterval: recurrenceInterval,
+        recurrenceEndDate: recurrenceEndDate
+      )
+      context.insert(newSeries)
+
+      do {
+        try context.save()
+        rescheduleAllNotifications(context: context)
+        syncEventsToWidget(context: context)
+      } catch {
+        ErrorPresenter.shared.present(error)
+      }
+      return
+    }
+
+    updateEvent(
+      source,
+      title: title,
+      notes: notes,
+      color: color,
+      date: date,
+      reminderInterval: reminderInterval,
+      recurrenceType: recurrenceType,
+      recurrenceInterval: recurrenceInterval,
+      recurrenceEndDate: recurrenceEndDate,
+      context: context
+    )
   }
 
   func deleteEvent(_ event: Event, context: ModelContext) {
@@ -47,16 +125,46 @@ class EventViewModel {
     }
   }
 
+  func deleteEventOccurrence(
+    _ occurrence: EventOccurrence,
+    scope: EventEditScope = .thisAndFuture,
+    context: ModelContext
+  ) {
+    switch scope {
+    case .thisAndFuture:
+      break
+    }
+
+    let source = occurrence.sourceEvent
+    let isAnchorOccurrence = occurrence.occurrenceDate == source.date
+
+    if !isAnchorOccurrence && source.isRecurring {
+      source.recurrenceEndDate = occurrence.occurrenceDate.startOfDay.addingTimeInterval(-1)
+      do {
+        try context.save()
+        rescheduleAllNotifications(context: context)
+        syncEventsToWidget(context: context)
+      } catch {
+        ErrorPresenter.shared.present(error)
+      }
+      return
+    }
+
+    deleteEvent(source, context: context)
+  }
+
   func rescheduleAllNotifications(context: ModelContext) {
     let now = Date()
-    let descriptor = FetchDescriptor<Event>(
-      predicate: #Predicate { $0.date > now },
-      sortBy: [SortDescriptor(\.date)]
-    )
+    let descriptor = FetchDescriptor<Event>(sortBy: [SortDescriptor(\.date)])
 
     do {
       let events = try context.fetch(descriptor)
-      NotificationService.shared.syncEventNotifications(events: events)
+      let end = Calendar.current.date(byAdding: .year, value: 1, to: now) ?? now
+      let occurrences = EventRecurrenceService.shared.occurrences(
+        for: events,
+        in: DateInterval(start: now, end: end)
+      )
+      NotificationService.shared.syncEventNotifications(occurrences: occurrences)
     } catch {
       ErrorPresenter.shared.present(error)
     }
@@ -70,12 +178,7 @@ class EventViewModel {
     let rangeStart = calendar.date(byAdding: .day, value: -1, to: weekStart)!
     let rangeEnd = calendar.date(byAdding: .day, value: 15, to: weekStart)!
 
-    let eventDescriptor = FetchDescriptor<Event>(
-      predicate: #Predicate { event in
-        event.date >= rangeStart && event.date <= rangeEnd
-      },
-      sortBy: [SortDescriptor(\.date)]
-    )
+    let eventDescriptor = FetchDescriptor<Event>(sortBy: [SortDescriptor(\.date)])
 
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
@@ -85,11 +188,17 @@ class EventViewModel {
     // Sync events
     do {
       let events = try context.fetch(eventDescriptor)
-      for event in events {
-        let key = formatter.string(from: event.date)
+      let occurrences = EventRecurrenceService.shared.occurrences(
+        for: events,
+        in: DateInterval(start: rangeStart, end: rangeEnd)
+      )
+
+      for occurrence in occurrences {
+        let source = occurrence.sourceEvent
+        let key = formatter.string(from: occurrence.occurrenceDate)
         var colors = eventMap[key] ?? []
         if colors.count < 6 {
-          colors.append(event.isHoliday ? "holiday:\(event.color)" : event.color)
+          colors.append(source.isHoliday ? "holiday:\(source.color)" : source.color)
         }
         eventMap[key] = colors
       }

@@ -146,6 +146,7 @@ class TodoViewModel: ObservableObject {
     recurrenceInterval: Int,
     recurrenceDaysOfWeek: [Int]?,
     recurrenceEndDate: Date?,
+    subtasks: [String] = [],
     context: ModelContext
   ) {
     let todo = TodoItem(
@@ -167,6 +168,15 @@ class TodoViewModel: ObservableObject {
     if let category = category {
       todo.category = category
       category.todos?.append(todo)
+    }
+
+    for subtaskTitle in normalizedSubtaskTitles(subtasks) {
+      let subtask = TodoItem(
+        title: subtaskTitle,
+        priority: priority,
+        parentTodo: todo
+      )
+      context.insert(subtask)
     }
 
     do {
@@ -198,6 +208,7 @@ class TodoViewModel: ObservableObject {
     recurrenceInterval: Int,
     recurrenceDaysOfWeek: [Int]?,
     recurrenceEndDate: Date?,
+    subtasks: [String],
     context: ModelContext
   ) {
     todo.title = title
@@ -212,6 +223,10 @@ class TodoViewModel: ObservableObject {
     todo.recurrenceInterval = recurrenceInterval
     todo.recurrenceDaysOfWeek = recurrenceDaysOfWeek
     todo.recurrenceEndDate = recurrenceEndDate
+    syncSubtasks(for: todo, titles: subtasks, context: context)
+    if todo.hasSubtasks {
+      recomputeParentCompletionState(for: todo, context: context, allowRecurring: false)
+    }
     do {
       try context.save()
     } catch {
@@ -229,8 +244,12 @@ class TodoViewModel: ObservableObject {
   }
 
   func deleteTodo(_ todo: TodoItem, context: ModelContext) {
+    let parent = todo.parentTodo
     NotificationService.shared.cancelTodoNotification(id: todo.id)
     context.delete(todo)
+    if let parent = parent {
+      recomputeParentCompletionState(for: parent, context: context, allowRecurring: false)
+    }
     do {
       try context.save()
     } catch {
@@ -242,57 +261,79 @@ class TodoViewModel: ObservableObject {
   }
 
   func toggleCompletion(_ todo: TodoItem, context: ModelContext) {
-    todo.isCompleted.toggle()
+    if todo.isSubtask {
+      toggleSubtaskCompletion(todo, context: context)
+      return
+    }
+    if todo.isParentCompletionDerived {
+      return
+    }
+    toggleStandaloneTodoCompletion(todo, context: context)
+  }
 
-    if todo.isCompleted {
-      todo.completedAt = Date()
-      NotificationService.shared.cancelTodoNotification(id: todo.id)
+  func toggleStandaloneTodoCompletion(_ todo: TodoItem, context: ModelContext) {
+    setCompletionState(for: todo, isCompleted: !todo.isCompleted, context: context, allowRecurring: true)
+    persistAndSync(context: context)
+  }
 
-      if todo.isRecurring, let nextDue = todo.nextDueDate() {
-        let newTodo = TodoItem(
-          title: todo.title,
-          notes: todo.notes,
-          priority: todo.priorityEnum,
-          dueDate: nextDue,
-          reminderInterval: todo.reminderInterval,
-          reminderRepeatInterval: todo.reminderRepeatInterval,
-          reminderRepeatCount: todo.reminderRepeatCount,
-          category: todo.category,
-          parentTodo: nil,
-          recurrenceType: todo.recurrenceTypeEnum,
-          recurrenceInterval: todo.recurrenceInterval,
-          recurrenceDaysOfWeek: todo.recurrenceDaysOfWeek,
-          recurrenceEndDate: todo.recurrenceEndDate
-        )
-        context.insert(newTodo)
+  func toggleSubtaskCompletion(_ subtask: TodoItem, context: ModelContext) {
+    guard subtask.isSubtask else {
+      toggleStandaloneTodoCompletion(subtask, context: context)
+      return
+    }
+    setCompletionState(
+      for: subtask, isCompleted: !subtask.isCompleted, context: context, allowRecurring: false)
+    if let parent = subtask.parentTodo {
+      recomputeParentCompletionState(for: parent, context: context)
+    }
+    persistAndSync(context: context)
+  }
 
-        if let subtasks = todo.subtasks {
-          for subtask in subtasks {
-            let newSubtask = TodoItem(
-              title: subtask.title,
-              notes: subtask.notes,
-              priority: subtask.priorityEnum,
-              dueDate: nil,
-              reminderInterval: nil,
-              category: nil,
-              parentTodo: newTodo
-            )
-            context.insert(newSubtask)
-          }
-        }
+  func recomputeParentCompletion(for parent: TodoItem, context: ModelContext) {
+    recomputeParentCompletionState(for: parent, context: context)
+    persistAndSync(context: context)
+  }
 
-        if newTodo.reminderInterval != nil || newTodo.reminderRepeatInterval != nil {
-          NotificationService.shared.scheduleTodoNotification(todo: newTodo)
-        }
-      }
+  func normalizeCompletionStatesOnLoad(context: ModelContext, candidates: [TodoItem]? = nil) {
+    let parents: [TodoItem]
+    if let candidates = candidates {
+      parents = candidates.filter { !$0.isSubtask && $0.hasSubtasks }
     } else {
-      todo.completedAt = nil
-      if todo.dueDate != nil && (todo.reminderInterval != nil || todo.reminderRepeatInterval != nil)
-      {
-        NotificationService.shared.scheduleTodoNotification(todo: todo)
+      let descriptor = FetchDescriptor<TodoItem>(
+        predicate: #Predicate { todo in
+          todo.parentTodo == nil
+        }
+      )
+      do {
+        parents = try context.fetch(descriptor).filter(\.hasSubtasks)
+      } catch {
+        ErrorPresenter.shared.present(error)
+        return
       }
     }
 
+    var hasChanges = false
+    for parent in parents {
+      let expected = expectedParentCompletion(for: parent)
+      if parent.isCompleted != expected {
+        hasChanges = true
+      }
+      recomputeParentCompletionState(for: parent, context: context, allowRecurring: false)
+    }
+
+    if hasChanges {
+      persistAndSync(context: context)
+    }
+  }
+
+  func addSubtask(to parent: TodoItem, title: String, context: ModelContext) {
+    let subtask = TodoItem(
+      title: title,
+      priority: parent.priorityEnum,
+      parentTodo: parent
+    )
+    context.insert(subtask)
+    recomputeParentCompletionState(for: parent, context: context, allowRecurring: false)
     do {
       try context.save()
     } catch {
@@ -303,18 +344,160 @@ class TodoViewModel: ObservableObject {
     EventViewModel().syncEventsToWidget(context: context)
   }
 
-  func addSubtask(to parent: TodoItem, title: String, context: ModelContext) {
-    let subtask = TodoItem(
-      title: title,
-      priority: parent.priorityEnum,
-      parentTodo: parent
+  private func normalizedSubtaskTitles(_ titles: [String]) -> [String] {
+    titles
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+  }
+
+  private func syncSubtasks(for todo: TodoItem, titles: [String], context: ModelContext) {
+    let normalized = normalizedSubtaskTitles(titles)
+    let existing = (todo.subtasks ?? []).sorted { $0.createdAt < $1.createdAt }
+
+    for (index, title) in normalized.enumerated() {
+      if index < existing.count {
+        existing[index].title = title
+      } else {
+        let subtask = TodoItem(
+          title: title,
+          priority: todo.priorityEnum,
+          parentTodo: todo
+        )
+        context.insert(subtask)
+      }
+    }
+
+    if existing.count > normalized.count {
+      for stale in existing[normalized.count...] {
+        context.delete(stale)
+      }
+    }
+  }
+
+  private func expectedParentCompletion(for parent: TodoItem) -> Bool {
+    guard parent.hasSubtasks else { return parent.isCompleted }
+    let allSubtasks = parent.subtasks ?? []
+    return !allSubtasks.isEmpty && allSubtasks.allSatisfy(\.isCompleted)
+  }
+
+  private func recomputeParentCompletionState(
+    for parent: TodoItem, context: ModelContext, allowRecurring: Bool = true
+  ) {
+    guard parent.hasSubtasks else { return }
+    let expected = expectedParentCompletion(for: parent)
+    setCompletionState(
+      for: parent, isCompleted: expected, context: context, allowRecurring: allowRecurring)
+  }
+
+  private func setCompletionState(
+    for todo: TodoItem, isCompleted: Bool, context: ModelContext, allowRecurring: Bool
+  ) {
+    guard todo.isCompleted != isCompleted else { return }
+    todo.isCompleted = isCompleted
+
+    if isCompleted {
+      todo.completedAt = Date()
+      NotificationService.shared.cancelTodoNotification(id: todo.id)
+
+      if allowRecurring {
+        createRecurringSuccessorIfNeeded(from: todo, context: context)
+      }
+    } else {
+      todo.completedAt = nil
+      if todo.dueDate != nil && (todo.reminderInterval != nil || todo.reminderRepeatInterval != nil) {
+        NotificationService.shared.scheduleTodoNotification(todo: todo)
+      }
+    }
+  }
+
+  private func createRecurringSuccessorIfNeeded(from todo: TodoItem, context: ModelContext) {
+    guard todo.isRecurring, let nextDue = todo.nextDueDate() else { return }
+
+    let newTodo = TodoItem(
+      title: todo.title,
+      notes: todo.notes,
+      priority: todo.priorityEnum,
+      dueDate: nextDue,
+      reminderInterval: todo.reminderInterval,
+      reminderRepeatInterval: todo.reminderRepeatInterval,
+      reminderRepeatCount: todo.reminderRepeatCount,
+      category: todo.category,
+      parentTodo: nil,
+      recurrenceType: todo.recurrenceTypeEnum,
+      recurrenceInterval: todo.recurrenceInterval,
+      recurrenceDaysOfWeek: todo.recurrenceDaysOfWeek,
+      recurrenceEndDate: todo.recurrenceEndDate
     )
-    context.insert(subtask)
+    context.insert(newTodo)
+
+    if let subtasks = todo.subtasks {
+      for subtask in subtasks {
+        let newSubtask = TodoItem(
+          title: subtask.title,
+          notes: subtask.notes,
+          priority: subtask.priorityEnum,
+          dueDate: nil,
+          reminderInterval: nil,
+          category: nil,
+          parentTodo: newTodo
+        )
+        context.insert(newSubtask)
+      }
+    }
+
+    if newTodo.reminderInterval != nil || newTodo.reminderRepeatInterval != nil {
+      NotificationService.shared.scheduleTodoNotification(todo: newTodo)
+    }
+  }
+
+  private func persistAndSync(context: ModelContext) {
     do {
       try context.save()
     } catch {
       ErrorPresenter.shared.present(error)
+      return
     }
+    syncTodoCountToWidget(context: context)
+    EventViewModel().syncEventsToWidget(context: context)
+  }
+
+  func selectLooseTodos(
+    from todos: [TodoItem], now: Date = Date(), dueSoonHours: Int = 72, limit: Int = 6
+  ) -> [TodoItem] {
+    let dueSoonCutoff = now.addingTimeInterval(TimeInterval(dueSoonHours * 3600))
+    let queuedTodos = todos.filter { !$0.isCompleted && !$0.isSubtask }
+
+    let uncategorized = queuedTodos.filter { todo in
+      todo.category == nil || todo.category?.name == TodoViewModel.noCategoryName
+    }
+    let dueSoon = queuedTodos.filter { todo in
+      guard let dueDate = todo.dueDate else { return false }
+      return dueDate <= dueSoonCutoff
+    }
+
+    var merged: [UUID: TodoItem] = [:]
+    for todo in uncategorized + dueSoon {
+      merged[todo.id] = todo
+    }
+
+    return merged.values
+      .sorted { lhs, rhs in
+        let lhsOverdue = (lhs.dueDate ?? .distantFuture) < now
+        let rhsOverdue = (rhs.dueDate ?? .distantFuture) < now
+        if lhsOverdue != rhsOverdue { return lhsOverdue && !rhsOverdue }
+
+        let lhsDue = lhs.dueDate ?? .distantFuture
+        let rhsDue = rhs.dueDate ?? .distantFuture
+        if lhsDue != rhsDue { return lhsDue < rhsDue }
+
+        if lhs.priorityEnum.sortOrder != rhs.priorityEnum.sortOrder {
+          return lhs.priorityEnum.sortOrder < rhs.priorityEnum.sortOrder
+        }
+        if lhs.isPinned != rhs.isPinned { return lhs.isPinned && !rhs.isPinned }
+        return lhs.createdAt > rhs.createdAt
+      }
+      .prefix(limit)
+      .map { $0 }
   }
 
   func createDefaultCategoryIfNeeded(context: ModelContext) {
