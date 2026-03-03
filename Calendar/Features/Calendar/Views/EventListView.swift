@@ -30,6 +30,13 @@ struct EventListView: View {
     events.count + incompleteTodos.count + expenses.count
   }
 
+  private var contentHeight: CGFloat {
+    if allItemCount == 0 { return 112 }
+    let visibleRows = min(allItemCount, 3)
+    let rowsHeight = CGFloat(visibleRows) * 42
+    let extra = allItemCount > 3 ? 28.0 : 0.0
+    return min(max(rowsHeight + extra, 112), 176)
+  }
 
 
   // Helper to determine what to show in the limited space (max 3 items)
@@ -65,18 +72,24 @@ struct EventListView: View {
     VStack(alignment: .leading, spacing: 0) {
       // Header Section
       HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 1) {
           if let date {
             Text(date.formattedDate)
-              .font(.system(size: 18, weight: .black, design: .rounded))
+              .font(.system(size: 18, weight: .black))
               .foregroundColor(Color.textPrimary)
           }
-          
-          Text(Localization.string(.today).uppercased())
+
+          if isToday {
+            Text(Localization.string(.today).uppercased())
               .font(.system(size: 10, weight: .black))
-              .foregroundColor(.accentColor)
+              .foregroundColor(.appAccent)
               .tracking(1)
-              .opacity(isToday ? 1 : 0)
+          } else if let date {
+            Text(date.formatted(.dateTime.weekday(.abbreviated)).uppercased())
+              .font(.system(size: 10, weight: .semibold))
+              .foregroundColor(.textSecondary)
+              .tracking(0.8)
+          }
         }
 
         Spacer()
@@ -86,21 +99,25 @@ struct EventListView: View {
             Button(action: onJumpToToday) {
               Image(systemName: "arrow.uturn.backward.circle.fill")
                 .font(.system(size: 20))
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.textPrimary)
+                .frame(width: 30, height: 30)
             }
+            .softControl(cornerRadius: 10, padding: 2)
             .buttonStyle(.plain)
           }
-          
+
           Button(action: onAdd) {
-            Image(systemName: "plus.circle.fill")
-              .font(.system(size: 20))
-              .foregroundColor(.accentColor)
+            Image(systemName: "plus")
+              .font(.system(size: 15, weight: .bold))
+              .foregroundColor(.appAccent)
+              .frame(width: 30, height: 30)
           }
+          .softControl(cornerRadius: 10, padding: 2)
           .buttonStyle(.plain)
         }
       }
       .padding(.horizontal, 20)
-      .padding(.top, 16)
+      .padding(.top, 14)
       .padding(.bottom, 12)
 
       // Content area
@@ -141,7 +158,7 @@ struct EventListView: View {
                 } label: {
                   Text(Localization.string(.more(allItemCount - 3)).uppercased())
                     .font(.system(size: 10, weight: .black))
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.appAccent)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 4)
                 }
@@ -151,7 +168,7 @@ struct EventListView: View {
           }
           .padding(.horizontal, 16)
       }
-      .frame(height: 160)
+      .frame(height: contentHeight)
       .padding(.bottom, 12)
     }
     .softCard(cornerRadius: 20, padding: 0, shadow: false)
@@ -247,7 +264,7 @@ struct EventListDetailSheet: View {
   var body: some View {
     NavigationStack {
       ZStack {
-          MeshGradientView().ignoresSafeArea().opacity(0.2)
+          Color.backgroundPrimary.ignoresSafeArea()
           ScrollView {
             LazyVStack(spacing: 8) {
               ForEach(events) { event in

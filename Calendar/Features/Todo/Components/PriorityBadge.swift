@@ -5,19 +5,18 @@ struct PriorityBadge: View {
 
   var body: some View {
     Text(priority.displayName.uppercased())
-      .font(.system(size: 9, weight: .bold))
-      .foregroundColor(.white)
+      .font(.system(size: 10, weight: .semibold))
+      .foregroundColor(color)
       .padding(.horizontal, 8)
-      .padding(.vertical, 3)
+      .padding(.vertical, 4)
       .background(
-        LinearGradient(
-            colors: [color.opacity(0.8), color],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        Capsule()
+          .fill(color.opacity(0.15))
       )
-      .clipShape(Capsule())
-      .shadow(color: color.opacity(0.3), radius: 4, x: 0, y: 2)
+      .overlay(
+        Capsule()
+          .stroke(color.opacity(0.35), lineWidth: 0.8)
+      )
   }
 
   var color: Color {

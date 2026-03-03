@@ -478,7 +478,7 @@ struct SmallWeatherWidgetView: View {
         .symbolRenderingMode(.hierarchical)
 
       Text("\(Int(entry.currentTemp))°")
-        .font(.system(size: 36, weight: .bold, design: .rounded))
+        .font(.system(size: 36, weight: .bold))
         .foregroundColor(scheme.textPrimary)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -506,7 +506,7 @@ struct MediumWeatherWidgetView: View {
             .symbolRenderingMode(.hierarchical)
 
           Text("\(Int(entry.currentTemp))°")
-            .font(.system(size: 28, weight: .bold, design: .rounded))
+            .font(.system(size: 28, weight: .bold))
             .foregroundColor(scheme.textPrimary)
         }
 
@@ -517,7 +517,7 @@ struct MediumWeatherWidgetView: View {
           Spacer()
 
           Text("\(Int(entry.minTemp))° / \(Int(entry.maxTemp))°")
-            .font(.system(size: 16, weight: .semibold, design: .rounded))
+            .font(.system(size: 16, weight: .semibold))
             .foregroundColor(scheme.textSecondary)
 
           if let city = entry.city {
@@ -538,7 +538,7 @@ struct MediumWeatherWidgetView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+          .stroke(scheme.cardBorderStrong, lineWidth: 0.6)
       )
       .padding(.horizontal, 10)
       .padding(.top, 8)
@@ -568,7 +568,7 @@ struct MediumWeatherWidgetView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(Color.white.opacity(0.06), lineWidth: 0.6)
+          .stroke(scheme.cardBorder, lineWidth: 0.6)
       )
       .padding(.horizontal, 10)
       .padding(.top, 8)
@@ -598,7 +598,7 @@ struct LargeWeatherWidgetView: View {
             .symbolRenderingMode(.hierarchical)
 
           Text("\(Int(entry.currentTemp))°")
-            .font(.system(size: 32, weight: .bold, design: .rounded))
+            .font(.system(size: 32, weight: .bold))
             .foregroundColor(scheme.textPrimary)
         }
 
@@ -607,7 +607,7 @@ struct LargeWeatherWidgetView: View {
         // Right: Min/Max temps
         VStack(alignment: .trailing, spacing: 4) {
           Text("\(Int(entry.minTemp))° / \(Int(entry.maxTemp))°")
-            .font(.system(size: 18, weight: .semibold, design: .rounded))
+            .font(.system(size: 18, weight: .semibold))
             .foregroundColor(scheme.textSecondary)
 
           if let city = entry.city {
@@ -626,7 +626,7 @@ struct LargeWeatherWidgetView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+          .stroke(scheme.cardBorderStrong, lineWidth: 0.6)
       )
       .padding(.horizontal, 10)
       .padding(.top, 10)
@@ -658,7 +658,7 @@ struct LargeWeatherWidgetView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .stroke(Color.white.opacity(0.06), lineWidth: 0.6)
+          .stroke(scheme.cardBorder, lineWidth: 0.6)
       )
       .padding(.horizontal, 10)
       .padding(.top, 10)
@@ -680,7 +680,7 @@ struct DayColumnMedium: View {
     VStack(spacing: 6) {
       // Day name
       Text(day.name.prefix(3).uppercased())
-        .font(.system(size: 9, weight: .bold, design: .rounded))
+        .font(.system(size: 9, weight: .bold))
         .foregroundColor(
           day.isToday
             ? scheme.accent
@@ -704,8 +704,8 @@ struct DayColumnMedium: View {
         }
 
         Text("\(day.date)")
-          .font(.system(size: 13, weight: day.isToday ? .bold : .semibold, design: .rounded))
-          .foregroundColor(day.isToday ? .white : scheme.textPrimary)
+          .font(.system(size: 13, weight: day.isToday ? .bold : .semibold))
+          .foregroundColor(day.isToday ? (scheme == .dark ? Color.black.opacity(0.85) : .white) : scheme.textPrimary)
       }
       .frame(width: 30, height: 30)
     }
@@ -723,7 +723,7 @@ struct DayWeatherColumn: View {
     VStack(spacing: 4) {
       // Day name
       Text(day.name.prefix(3).uppercased())
-        .font(.system(size: 9, weight: .bold, design: .rounded))
+        .font(.system(size: 9, weight: .bold))
         .foregroundColor(
           day.isToday
             ? scheme.accent
@@ -753,8 +753,8 @@ struct DayWeatherColumn: View {
         }
 
         Text("\(day.date)")
-          .font(.system(size: 12, weight: day.isToday ? .bold : .semibold, design: .rounded))
-          .foregroundColor(day.isToday ? .white : scheme.textPrimary)
+          .font(.system(size: 12, weight: day.isToday ? .bold : .semibold))
+          .foregroundColor(day.isToday ? (scheme == .dark ? Color.black.opacity(0.85) : .white) : scheme.textPrimary)
       }
       .frame(width: 28, height: 28)
     }
@@ -772,7 +772,7 @@ struct DayWeatherLargeColumn: View {
     VStack(spacing: 6) {
       // Day name
       Text(day.name.prefix(3).uppercased())
-        .font(.system(size: 10, weight: .bold, design: .rounded))
+        .font(.system(size: 10, weight: .bold))
         .foregroundColor(
           day.isToday
             ? scheme.accent
@@ -789,12 +789,12 @@ struct DayWeatherLargeColumn: View {
 
       // Min temp
       Text("\(Int(day.minTemp))°")
-        .font(.system(size: 12, weight: .medium, design: .rounded))
+        .font(.system(size: 12, weight: .medium))
         .foregroundColor(scheme.textSecondary)
 
       // Max temp
       Text("\(Int(day.maxTemp))°")
-        .font(.system(size: 12, weight: .bold, design: .rounded))
+        .font(.system(size: 12, weight: .bold))
         .foregroundColor(scheme.textPrimary)
 
       // Day number with today highlight and event ring
@@ -812,8 +812,8 @@ struct DayWeatherLargeColumn: View {
         }
 
         Text("\(day.date)")
-          .font(.system(size: 14, weight: day.isToday ? .bold : .semibold, design: .rounded))
-          .foregroundColor(day.isToday ? .white : scheme.textPrimary)
+          .font(.system(size: 14, weight: day.isToday ? .bold : .semibold))
+          .foregroundColor(day.isToday ? (scheme == .dark ? Color.black.opacity(0.85) : .white) : scheme.textPrimary)
       }
       .frame(width: 32, height: 32)
     }
@@ -835,7 +835,7 @@ struct ForecastDayLargeColumn: View {
     VStack(spacing: 6) {
       // Day name
       Text(day.name.prefix(3).uppercased())
-        .font(.system(size: 10, weight: .bold, design: .rounded))
+        .font(.system(size: 10, weight: .bold))
         .foregroundColor(
           day.isToday
             ? scheme.accent
@@ -852,12 +852,12 @@ struct ForecastDayLargeColumn: View {
 
       // Min temp
       Text("\(Int(day.minTemp))°")
-        .font(.system(size: 12, weight: .medium, design: .rounded))
+        .font(.system(size: 12, weight: .medium))
         .foregroundColor(scheme.textSecondary)
 
       // Max temp
       Text("\(Int(day.maxTemp))°")
-        .font(.system(size: 12, weight: .bold, design: .rounded))
+        .font(.system(size: 12, weight: .bold))
         .foregroundColor(scheme.textPrimary)
 
       // Day number with today highlight and event ring
@@ -875,8 +875,8 @@ struct ForecastDayLargeColumn: View {
         }
 
         Text("\(day.date)")
-          .font(.system(size: 14, weight: day.isToday ? .bold : .semibold, design: .rounded))
-          .foregroundColor(day.isToday ? .white : scheme.textPrimary)
+          .font(.system(size: 14, weight: day.isToday ? .bold : .semibold))
+          .foregroundColor(day.isToday ? (scheme == .dark ? Color.black.opacity(0.85) : .white) : scheme.textPrimary)
       }
       .frame(width: 32, height: 32)
     }
@@ -897,77 +897,20 @@ struct DayEventRing: View {
 
   var body: some View {
     let entries = eventColors.prefix(2).map { parseWidgetColorEntry($0) }
-    let ringCount = entries.count
-    let ringLineWidth: CGFloat = ringCount > 1 ? 2 : 2.5
-    let ringGap: CGFloat = 1.0
 
-    Canvas { context, canvasSize in
-      let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
-      let outerRadius = (min(canvasSize.width, canvasSize.height) - ringLineWidth) / 2
+    VStack(spacing: 0) {
+      Spacer()
 
-      for i in 0..<ringCount {
-        let entry = entries[i]
-        let radius = outerRadius - CGFloat(i) * (ringLineWidth + ringGap)
-
-        if entry.isHoliday {
-          // Wavy/scalloped circle for holidays
-          drawWavyCircle(
-            context: context,
-            center: center,
-            radius: radius,
-            color: entry.color,
-            lineWidth: ringLineWidth
-          )
-        } else {
-          var path = Path()
-          path.addArc(
-            center: center,
-            radius: radius,
-            startAngle: .degrees(0),
-            endAngle: .degrees(360),
-            clockwise: false
-          )
-          context.stroke(
-            path,
-            with: .color(entry.color),
-            style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .round)
-          )
+      HStack(spacing: 2) {
+        ForEach(entries.indices, id: \.self) { index in
+          Circle()
+            .fill(entries[index].color)
+            .frame(width: 3.5, height: 3.5)
         }
       }
+      .padding(.bottom, 2)
     }
     .frame(width: size, height: size)
-  }
-
-  /// Draws a wavy/scalloped circle for holiday events
-  private func drawWavyCircle(
-    context: GraphicsContext,
-    center: CGPoint,
-    radius: CGFloat,
-    color: Color,
-    lineWidth: CGFloat,
-    scallops: Int = 6,
-    waveDepth: CGFloat = 1.5
-  ) {
-    var path = Path()
-    let steps = 360
-    for i in 0...steps {
-      let angle = Double(i) * .pi * 2.0 / Double(steps)
-      let wave = sin(Double(scallops) * angle) * Double(waveDepth)
-      let r = radius + CGFloat(wave)
-      let x = center.x + r * CGFloat(cos(angle - .pi / 2))
-      let y = center.y + r * CGFloat(sin(angle - .pi / 2))
-      if i == 0 {
-        path.move(to: CGPoint(x: x, y: y))
-      } else {
-        path.addLine(to: CGPoint(x: x, y: y))
-      }
-    }
-    path.closeSubpath()
-    context.stroke(
-      path,
-      with: .color(color),
-      style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
-    )
   }
 }
 

@@ -32,7 +32,7 @@ struct GlassButton: View {
     }
     .padding(.horizontal, 14)
     .padding(.vertical, 10)
-    .foregroundColor(isPrimary ? .white : .textPrimary)
+    .foregroundColor(isPrimary ? .backgroundPrimary : .textPrimary)
     .background(backgroundView)
   }
 
@@ -40,14 +40,14 @@ struct GlassButton: View {
   private var backgroundView: some View {
     if isPrimary {
       RoundedRectangle(cornerRadius: Spacing.smallRadius, style: .continuous)
-        .fill(Color.accentColor)
-        .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
+        .fill(Color.appAccent)
+        .shadow(color: AppPalette.subtleShadow, radius: AppElevation.low, x: 0, y: 2)
     } else {
       RoundedRectangle(cornerRadius: Spacing.smallRadius, style: .continuous)
-        .fill(Color.secondaryFill.opacity(0.7))
+        .fill(AppPalette.controlFill)
         .overlay(
           RoundedRectangle(cornerRadius: Spacing.smallRadius, style: .continuous)
-            .stroke(Color.border.opacity(0.2), lineWidth: 0.7)
+            .stroke(AppPalette.sectionBorder, lineWidth: 0.7)
         )
     }
   }

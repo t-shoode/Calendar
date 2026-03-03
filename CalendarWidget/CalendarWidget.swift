@@ -206,21 +206,35 @@ enum WidgetColorScheme {
 
   // Colors synced with the app's Color+Theme.swift design tokens
   var background: Color {
-    self == .dark ? Color(red: 0.07, green: 0.08, blue: 0.11) : Color(UIColor.systemBackground)
+    self == .dark ? Color(red: 18 / 255, green: 20 / 255, blue: 24 / 255) : Color(UIColor.systemBackground)
   }
   var surface: Color {
-    self == .dark ? Color.white.opacity(0.1) : Color(UIColor.secondarySystemGroupedBackground)
+    self == .dark
+      ? Color(red: 34 / 255, green: 37 / 255, blue: 44 / 255)
+      : Color(UIColor.secondarySystemGroupedBackground)
   }
   var surfaceElevated: Color {
-    self == .dark ? Color.white.opacity(0.06) : Color(UIColor.tertiarySystemFill)
+    self == .dark
+      ? Color(red: 29 / 255, green: 32 / 255, blue: 38 / 255)
+      : Color(UIColor.tertiarySystemFill)
   }
   var textPrimary: Color { Color(UIColor.label) }
   var textSecondary: Color { Color(UIColor.secondaryLabel) }
-  var accent: Color { Color(red: 0.12, green: 0.67, blue: 0.63) }
+  var accent: Color {
+    self == .dark
+      ? Color(red: 216 / 255, green: 220 / 255, blue: 227 / 255)
+      : Color(red: 47 / 255, green: 51 / 255, blue: 58 / 255)
+  }
   var todayHighlight: Color { accent }
   var iconMuted: Color { Color(UIColor.tertiaryLabel) }
   var divider: Color {
-    self == .dark ? Color.white.opacity(0.12) : Color(UIColor.separator)
+    self == .dark ? Color.white.opacity(0.14) : Color.black.opacity(0.12)
+  }
+  var cardBorderStrong: Color {
+    self == .dark ? Color.white.opacity(0.13) : Color.black.opacity(0.08)
+  }
+  var cardBorder: Color {
+    self == .dark ? Color.white.opacity(0.09) : Color.black.opacity(0.06)
   }
 
   static func from(forcedColorScheme: String?, environment: ColorScheme) -> WidgetColorScheme {
@@ -345,7 +359,7 @@ struct MediumWidgetView: View {
           entry.date.formatted(.dateTime.weekday(.wide).locale(WidgetLocalization.locale))
             .localizedCapitalized
         )
-        .font(.system(size: 22, weight: .black, design: .rounded))
+        .font(.system(size: 22, weight: .black))
         .foregroundColor(scheme.textPrimary)
 
         Spacer()
@@ -377,7 +391,7 @@ struct MediumWidgetView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+          .stroke(scheme.cardBorderStrong, lineWidth: 0.6)
       )
     }
     .padding(.horizontal, 14)
@@ -403,7 +417,7 @@ struct LargeWidgetView: View {
           entry.date.formatted(.dateTime.weekday(.wide).locale(WidgetLocalization.locale))
             .localizedCapitalized
         )
-        .font(.system(size: 24, weight: .black, design: .rounded))
+        .font(.system(size: 24, weight: .black))
         .foregroundColor(scheme.textPrimary)
 
         Spacer()
@@ -435,13 +449,13 @@ struct LargeWidgetView: View {
       )
       .overlay(
         RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .stroke(Color.white.opacity(0.08), lineWidth: 0.6)
+          .stroke(scheme.cardBorderStrong, lineWidth: 0.6)
       )
 
       // Status cards
       VStack(alignment: .leading, spacing: 10) {
         Text(WidgetLocalization.string(.status).uppercased())
-          .font(.system(size: 11, weight: .bold, design: .rounded))
+          .font(.system(size: 11, weight: .bold))
           .foregroundColor(scheme.textSecondary)
           .tracking(0.5)
 
@@ -615,7 +629,7 @@ struct TodoCircleIcon: View {
         .frame(width: size, height: size)
 
       Text("\(entry.todoCount)")
-        .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
+        .font(.system(size: size * 0.38, weight: .bold))
         .foregroundColor(entry.todoCount > 0 ? .orange : scheme.iconMuted)
     }
     .frame(width: size, height: size)
@@ -633,7 +647,7 @@ struct DayColumn: View {
   var body: some View {
     VStack(spacing: 4) {
       Text(day.name.prefix(3).uppercased())
-        .font(.system(size: labelSize, weight: .bold, design: .rounded))
+        .font(.system(size: labelSize, weight: .bold))
         .foregroundColor(
           day.isToday
             ? scheme.accent
@@ -649,226 +663,40 @@ struct DayColumn: View {
   }
 }
 
-// MARK: - Day Cell with Concentric Event Rings
+// MARK: - Day Cell
 
 struct DayCell: View {
   let day: DayInfo
   let scheme: WidgetColorScheme
   let size: CGFloat
 
-  private var ringCount: Int { min(max(day.eventColors.count, 0), 2) }
-  private var ringLineWidth: CGFloat {
-    let base = max(2.5, size * 0.075)
-    return ringCount > 1 ? base * 0.7 : base
+  private var entries: [WidgetColorEntry] {
+    day.eventColors.prefix(2).map { parseWidgetColorEntry($0) }
   }
-  private let ringGap: CGFloat = 1.0
 
   var body: some View {
-    let entries = day.eventColors.map { parseWidgetColorEntry($0) }
+    ZStack(alignment: .bottom) {
+      ZStack {
+        if day.isToday {
+          Circle()
+            .fill(scheme.todayHighlight)
+            .frame(width: size - 2, height: size - 2)
+        }
 
-    ZStack {
-      // Today highlight — filled circle matching app's DayCell
-      if day.isToday {
-        Circle()
-          .fill(scheme.todayHighlight)
-          .frame(width: size - 2, height: size - 2)
+        Text("\(day.date)")
+          .font(.system(size: size * 0.37, weight: day.isToday ? .bold : .semibold))
+          .foregroundColor(day.isToday ? (scheme == .dark ? Color.black.opacity(0.85) : .white) : scheme.textPrimary)
       }
 
       if !entries.isEmpty {
-        EventRing(
-          entries: entries,
-          size: size,
-          lineWidth: ringLineWidth,
-          ringGap: ringGap
-        )
-      }
-
-      Text("\(day.date)")
-        .font(.system(size: size * 0.37, weight: day.isToday ? .bold : .semibold, design: .rounded))
-        .foregroundColor(day.isToday ? .white : scheme.textPrimary)
-    }
-    .frame(width: size, height: size)
-  }
-}
-
-// MARK: - Event Ring (Concentric Circles & Arcs, Alternating Dashes for Todos)
-
-struct EventRing: View {
-  let entries: [WidgetColorEntry]
-  let size: CGFloat
-  let lineWidth: CGFloat
-  let ringGap: CGFloat
-
-  private let arcGapDegrees: Double = 8.0
-
-  /// Draws alternating colored dash segments along a circular arc
-  private static func drawAlternatingDashes(
-    context: GraphicsContext, center: CGPoint, radius: CGFloat,
-    startDeg: Double, endDeg: Double,
-    colorA: Color, colorB: Color,
-    lineWidth: CGFloat, dashDeg: Double = 20, gapDeg: Double = 8
-  ) {
-    var cursor = startDeg
-    var toggle = false
-    while cursor < endDeg {
-      let segEnd = min(cursor + dashDeg, endDeg)
-      var path = Path()
-      path.addArc(
-        center: center, radius: radius,
-        startAngle: .degrees(cursor), endAngle: .degrees(segEnd),
-        clockwise: false)
-      context.stroke(
-        path, with: .color(toggle ? colorB : colorA),
-        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-      toggle.toggle()
-      cursor = segEnd + gapDeg
-    }
-  }
-
-  /// Draws a wavy/scalloped circle for holiday events
-  private static func drawWavyCircle(
-    context: GraphicsContext, center: CGPoint, radius: CGFloat,
-    color: Color, lineWidth: CGFloat,
-    scallops: Int = 6, waveDepth: CGFloat = 1.5
-  ) {
-    var path = Path()
-    let steps = 360
-    for i in 0...steps {
-      let angle = Double(i) * .pi * 2.0 / Double(steps)
-      let wave = sin(Double(scallops) * angle) * Double(waveDepth)
-      let r = radius + CGFloat(wave)
-      let x = center.x + r * CGFloat(cos(angle - .pi / 2))
-      let y = center.y + r * CGFloat(sin(angle - .pi / 2))
-      if i == 0 {
-        path.move(to: CGPoint(x: x, y: y))
-      } else {
-        path.addLine(to: CGPoint(x: x, y: y))
-      }
-    }
-    path.closeSubpath()
-    context.stroke(
-      path, with: .color(color),
-      style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
-  }
-
-  /// Draws a wavy arc segment for holiday entries sharing a day cell with other events
-  private static func drawWavyArc(
-    context: GraphicsContext, center: CGPoint, radius: CGFloat,
-    startDeg: Double, endDeg: Double,
-    color: Color, lineWidth: CGFloat,
-    scallops: Int = 6, waveDepth: CGFloat = 1.2
-  ) {
-    var path = Path()
-    let totalDeg = endDeg - startDeg
-    let steps = max(Int(totalDeg * 2), 60)
-    for i in 0...steps {
-      let frac = Double(i) / Double(steps)
-      let deg = startDeg + frac * totalDeg
-      let angle = (deg - 90.0) * .pi / 180.0
-      // Sine wave modulation based on absolute angle for consistent scallop frequency
-      let wave = sin(Double(scallops) * angle) * Double(waveDepth)
-      let r = radius + CGFloat(wave)
-      let x = center.x + r * CGFloat(cos(angle))
-      let y = center.y + r * CGFloat(sin(angle))
-      if i == 0 {
-        path.move(to: CGPoint(x: x, y: y))
-      } else {
-        path.addLine(to: CGPoint(x: x, y: y))
-      }
-    }
-    context.stroke(
-      path, with: .color(color),
-      style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
-  }
-
-  var body: some View {
-    let count = entries.count
-
-    Canvas { context, canvasSize in
-      let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
-      let outerRadius = (min(canvasSize.width, canvasSize.height) - lineWidth) / 2
-
-      if count <= 2 {
-        for i in 0..<count {
-          let entry = entries[i]
-          let radius = outerRadius - CGFloat(i) * (lineWidth + ringGap)
-
-          if entry.isHoliday {
-            Self.drawWavyCircle(
-              context: context, center: center, radius: radius,
-              color: entry.color, lineWidth: lineWidth)
-          } else if entry.isTodo {
-            // Alternating colored dashes: category / priority
-            Self.drawAlternatingDashes(
-              context: context, center: center, radius: radius,
-              startDeg: 0, endDeg: 360,
-              colorA: entry.color, colorB: entry.priorityColor,
-              lineWidth: lineWidth)
-          } else {
-            var path = Path()
-            path.addArc(
-              center: center, radius: radius,
-              startAngle: .degrees(0), endAngle: .degrees(360),
-              clockwise: false)
-            context.stroke(
-              path, with: .color(entry.color),
-              style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+        HStack(spacing: 2) {
+          ForEach(entries.indices, id: \.self) { index in
+            Circle()
+              .fill(entries[index].color)
+              .frame(width: 3.5, height: 3.5)
           }
         }
-      } else {
-        let ringCount = 2
-        var rings: [[WidgetColorEntry]] = Array(repeating: [], count: ringCount)
-
-        let basePerRing = count / ringCount
-        let remainder = count % ringCount
-        var idx = 0
-        for r in 0..<ringCount {
-          let n = basePerRing + (r < remainder ? 1 : 0)
-          for _ in 0..<n {
-            rings[r].append(entries[idx])
-            idx += 1
-          }
-        }
-
-        for ringIdx in 0..<ringCount {
-          let ringEntries = rings[ringIdx]
-          if ringEntries.isEmpty { continue }
-          let visualIdx = ringCount - 1 - ringIdx
-          let radius = outerRadius - CGFloat(visualIdx) * (lineWidth + ringGap)
-
-          let arcCount = ringEntries.count
-          let totalGap = Double(arcCount) * arcGapDegrees
-          let arcSpan = (360.0 - totalGap) / Double(arcCount)
-
-          for j in 0..<arcCount {
-            let entry = ringEntries[j]
-            let startDeg = -90.0 + Double(j) * (arcSpan + arcGapDegrees)
-            let endDeg = startDeg + arcSpan
-
-            if entry.isHoliday {
-              // Wavy arc segment for holidays
-              Self.drawWavyArc(
-                context: context, center: center, radius: radius,
-                startDeg: startDeg, endDeg: endDeg,
-                color: entry.color, lineWidth: lineWidth)
-            } else if entry.isTodo {
-              Self.drawAlternatingDashes(
-                context: context, center: center, radius: radius,
-                startDeg: startDeg, endDeg: endDeg,
-                colorA: entry.color, colorB: entry.priorityColor,
-                lineWidth: lineWidth)
-            } else {
-              var path = Path()
-              path.addArc(
-                center: center, radius: radius,
-                startAngle: .degrees(startDeg), endAngle: .degrees(endDeg),
-                clockwise: false)
-              context.stroke(
-                path, with: .color(entry.color),
-                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-            }
-          }
-        }
+        .offset(y: 4)
       }
     }
     .frame(width: size, height: size)
@@ -910,7 +738,7 @@ struct StatusCard: View {
       }
 
       statusText
-        .font(.system(size: 12, weight: .bold, design: .rounded))
+        .font(.system(size: 12, weight: .bold))
         .foregroundColor(scheme.textPrimary)
         .lineLimit(1)
         .minimumScaleFactor(0.6)
@@ -920,39 +748,19 @@ struct StatusCard: View {
     .background(
       RoundedRectangle(cornerRadius: 12, style: .continuous)
         .fill(scheme.surface)
-        .overlay(
-          RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(Color.white.opacity(0.06), lineWidth: 0.5)
+      .overlay(
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .stroke(scheme.cardBorder, lineWidth: 0.5)
         )
     )
   }
 }
 
-// MARK: - Widget Gradient Background
+// MARK: - Widget Background
 
 @ViewBuilder
 func widgetGradientBackground(scheme: WidgetColorScheme) -> some View {
-  if scheme == .dark {
-    ZStack {
-      LinearGradient(
-        colors: [
-          Color(red: 0.08, green: 0.09, blue: 0.12),
-          Color(red: 0.06, green: 0.07, blue: 0.1),
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
-      .ignoresSafeArea()
-
-      Circle()
-        .fill(Color(red: 0.12, green: 0.67, blue: 0.63).opacity(0.22))
-        .frame(width: 180, height: 180)
-        .blur(radius: 42)
-        .offset(x: 65, y: -70)
-    }
-  } else {
-    scheme.background
-  }
+  scheme.background
 }
 
 // MARK: - Helpers

@@ -43,6 +43,7 @@ private struct CategoryStats {
 }
 
 struct TodoView: View {
+  @Environment(\.colorScheme) private var colorScheme
   @StateObject private var viewModel = TodoViewModel()
   @Query(sort: \TodoCategory.createdAt) private var categories: [TodoCategory]
   @Query(sort: \TodoItem.createdAt) private var allTodosRaw: [TodoItem]
@@ -50,6 +51,7 @@ struct TodoView: View {
 
   @State private var showingAddTodo = false
   @State private var showingAddCategory = false
+  @State private var showingSettings = false
   @State private var editingTodo: TodoItem?
   @State private var editingCategory: TodoCategory?
   @State private var sortOrder: TodoSortOrder = .manual
@@ -86,6 +88,10 @@ struct TodoView: View {
   private var totalCount: Int { allTodos.count }
   private var completedCount: Int { allTodos.filter(\.isCompleted).count }
   private var queuedCount: Int { allTodos.filter { !$0.isCompleted }.count }
+
+  private var accentForeground: Color {
+    colorScheme == .dark ? .backgroundPrimary : .white
+  }
 
   private var pinnedRootCategories: [TodoCategory] {
     categories
@@ -128,7 +134,7 @@ struct TodoView: View {
           }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 120)
+        .padding(.bottom, 92)
       }
     }
     .overlay(alignment: .bottomTrailing) {
@@ -142,14 +148,14 @@ struct TodoView: View {
       } label: {
         Image(systemName: "plus")
           .font(.system(size: 20, weight: .bold))
-          .foregroundColor(.white)
+          .foregroundColor(accentForeground)
           .frame(width: 56, height: 56)
-          .background(Color.accentColor)
+          .background(Color.appAccent)
           .clipShape(Circle())
-          .shadow(color: Color.accentColor.opacity(0.25), radius: 10, x: 0, y: 5)
+          .shadow(color: Color.appAccent.opacity(0.25), radius: 10, x: 0, y: 5)
       }
       .padding(.trailing, 24)
-      .padding(.bottom, 100)
+      .padding(.bottom, 24)
     }
     .sheet(isPresented: $showingAddTodo) {
       AddTodoSheet(categories: categories) {
@@ -178,6 +184,9 @@ struct TodoView: View {
       AddCategorySheet(categories: categories, onSave: { name, color, parentCat in
         viewModel.createCategory(name: name, color: color, parent: parentCat, context: modelContext)
       })
+    }
+    .sheet(isPresented: $showingSettings) {
+      SettingsSheet(isPresented: $showingSettings)
     }
     .sheet(item: $editingCategory) { cat in
       AddCategorySheet(category: cat, categories: categories, onSave: { name, color, parentCat in
@@ -217,15 +226,25 @@ struct TodoView: View {
     .onChange(of: allTodosRaw.count) { _, _ in
       viewModel.normalizeCompletionStatesOnLoad(context: modelContext, candidates: allTodos)
     }
+    .navigationBarHidden(true)
+    .safeAreaPadding(.top, 4)
   }
 
   private var header: some View {
     VStack(spacing: 16) {
       HStack {
         Text(Localization.string(.tabTodo))
-          .font(.system(size: 22, weight: .bold, design: .rounded))
+          .font(.system(size: 22, weight: .bold))
           .foregroundColor(.textPrimary)
         Spacer()
+        Button {
+          showingSettings = true
+        } label: {
+          Image(systemName: "gearshape")
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundColor(.textSecondary)
+        }
+        .softControl(cornerRadius: 12, padding: 8)
       }
 
       HStack(spacing: 10) {
@@ -241,13 +260,13 @@ struct TodoView: View {
       .softControl(cornerRadius: 16, padding: 0)
 
       HStack(spacing: 12) {
-        SummaryCard(label: Localization.string(.all), count: totalCount, color: .accentColor)
+        SummaryCard(label: Localization.string(.all), count: totalCount, color: .appAccent)
         SummaryCard(label: Localization.string(.queued), count: queuedCount, color: .priorityMedium)
         SummaryCard(label: Localization.string(.completed), count: completedCount, color: .eventGreen)
       }
     }
     .padding(.horizontal, 20)
-    .padding(.vertical, 20)
+    .padding(.vertical, 12)
   }
 
   @ViewBuilder
@@ -352,7 +371,7 @@ struct TodoView: View {
     } label: {
       Image(systemName: "line.3.horizontal.decrease.circle")
         .font(.system(size: 18))
-        .foregroundColor(.accentColor)
+        .foregroundColor(.appAccent)
         .padding(8)
         .softControl(cornerRadius: 16, padding: 0)
     }
@@ -512,7 +531,7 @@ private struct CategoryDetailView: View {
             } label: {
               Image(systemName: "plus.circle.fill")
                 .font(.system(size: 20))
-                .foregroundColor(.accentColor)
+                .foregroundColor(.appAccent)
             }
           }
         }
@@ -656,7 +675,7 @@ private struct CategoryDetailView: View {
     } label: {
       Image(systemName: "line.3.horizontal.decrease.circle")
         .font(.system(size: 18))
-        .foregroundColor(.accentColor)
+        .foregroundColor(.appAccent)
         .padding(8)
         .softControl(cornerRadius: 16, padding: 0)
     }
@@ -669,7 +688,7 @@ struct SectionHeader: View {
   var body: some View {
     HStack {
       Text(title)
-        .font(.system(size: 12, weight: .semibold, design: .rounded))
+        .font(.system(size: 12, weight: .semibold))
         .foregroundColor(.textTertiary)
       Spacer()
     }
@@ -686,10 +705,10 @@ private struct SummaryCard: View {
   var body: some View {
     VStack(spacing: 4) {
       Text("\(count)")
-        .font(.system(size: 20, weight: .black, design: .rounded))
+        .font(.system(size: 20, weight: .black))
         .foregroundColor(color)
       Text(label)
-        .font(.system(size: 10, weight: .semibold, design: .rounded))
+        .font(.system(size: 10, weight: .semibold))
         .foregroundColor(.textTertiary)
     }
     .frame(maxWidth: .infinity)

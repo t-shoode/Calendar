@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Reusable horizontal week-day selector strip.
 struct WeekStrip: View {
+  @Environment(\.colorScheme) private var colorScheme
   @Binding var selectedDate: Date
   var currentMonth: Date = Date()
 
@@ -27,21 +28,21 @@ struct WeekStrip: View {
           VStack(spacing: 4) {
             Text(date.formatted(.dateTime.weekday(.narrow)))
               .font(.system(size: 11, weight: .medium))
-              .foregroundColor(isSelected ? .accentColor : Color.textTertiary)
+              .foregroundColor(isSelected ? .appAccent : Color.textTertiary)
 
             Text(date.formatted(.dateTime.day()))
               .font(.system(size: 16, weight: isSelected ? .bold : .medium))
               .foregroundColor(
                 isSelected
-                  ? .white
+                  ? (colorScheme == .dark ? .backgroundPrimary : .white)
                   : isToday
-                    ? .accentColor
+                    ? .appAccent
                     : Color.textPrimary
               )
               .frame(width: 34, height: 34)
               .background(
                 Circle()
-                  .fill(isSelected ? Color.accentColor : Color.clear)
+                  .fill(isSelected ? Color.appAccent : Color.clear)
               )
           }
           .frame(maxWidth: .infinity)

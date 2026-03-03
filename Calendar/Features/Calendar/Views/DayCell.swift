@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DayCell: View {
+  @Environment(\.colorScheme) private var colorScheme
   let date: Date
   let isCurrentMonth: Bool
   let isSelected: Bool
@@ -15,13 +16,12 @@ struct DayCell: View {
           if isCurrentMonth {
               if isSelected {
                   Circle()
-                      .fill(Color.accentColor)
+                      .fill(Color.appAccent)
                       .frame(width: 36, height: 36)
-                      .shadow(color: Color.accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
                       .transition(.scale.combined(with: .opacity))
               } else if isToday {
                   Circle()
-                      .strokeBorder(Color.accentColor, lineWidth: 2)
+                      .strokeBorder(Color.appAccent, lineWidth: 2)
                       .frame(width: 36, height: 36)
               }
           }
@@ -55,9 +55,9 @@ struct DayCell: View {
     if !isCurrentMonth {
       return Color.textTertiary.opacity(0.5)
     } else if isSelected {
-      return .white
+      return colorScheme == .dark ? .backgroundPrimary : .white
     } else if isToday {
-      return .accentColor
+      return .appAccent
     } else {
       return Color.textPrimary
     }

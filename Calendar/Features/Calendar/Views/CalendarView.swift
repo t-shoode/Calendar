@@ -57,7 +57,7 @@ struct CalendarView: View {
             }
           }
         )
-        .padding(.top, 24)
+        .padding(.top, 4)
         .padding(.bottom, 6)
         .animation(nil, value: viewMode)
 
@@ -183,8 +183,8 @@ struct CalendarView: View {
           .zIndex(1)
       }
     }
-    .safeAreaPadding(.top, 18)
-    .safeAreaPadding(.bottom, 96)
+    .safeAreaPadding(.top, 4)
+    .safeAreaPadding(.bottom, 8)
     .navigationBarHidden(true)  // We use custom header
     .sheet(isPresented: $showingAddEvent) {
       AddEventView(date: viewModel.selectedDate ?? Date()) {
@@ -395,8 +395,8 @@ struct WeekdayHeaderView: View {
       ForEach(adjustedWeekdays.indices, id: \.self) { idx in
         let day = adjustedWeekdays[idx]
         Text(day)
-          .font(.system(size: 11, weight: .semibold, design: .rounded))
-          .foregroundColor(Color.textTertiary)
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundColor(Color.textSecondary.opacity(0.9))
           .frame(maxWidth: .infinity)
       }
     }
@@ -407,6 +407,7 @@ struct WeekdayHeaderView: View {
 }
 
 struct MonthHeaderView: View {
+  @Environment(\.colorScheme) private var colorScheme
   let currentMonth: Date
   @Binding var viewMode: CalendarViewMode
   let onPrevious: () -> Void
@@ -415,19 +416,21 @@ struct MonthHeaderView: View {
   let onSettings: () -> Void
   var onTitleTap: (() -> Void)? = nil
 
+  private var accentForeground: Color {
+    colorScheme == .dark ? .backgroundPrimary : .white
+  }
+
   var body: some View {
     VStack(spacing: 10) {
-      HStack(alignment: .center) {
+      HStack(alignment: .center, spacing: 10) {
         Button(action: onSettings) {
-          Image(systemName: "gearshape.fill")
-            .font(.system(size: 14, weight: .bold))
+          Image(systemName: "gearshape")
+            .font(.system(size: 15, weight: .semibold))
             .foregroundColor(.textSecondary)
-            .frame(width: 36, height: 36)
-            .softControl(cornerRadius: 18, padding: 0)
+            .frame(width: 38, height: 38)
+            .softControl(cornerRadius: 12, padding: 0)
         }
         .buttonStyle(.plain)
-
-        Spacer()
 
         Button(action: { onTitleTap?() }) {
           HStack(spacing: 6) {
@@ -437,26 +440,21 @@ struct MonthHeaderView: View {
 
             Image(systemName: "chevron.down")
               .font(.system(size: 11, weight: .bold))
-              .foregroundColor(Color.accentColor)
+              .foregroundColor(Color.textSecondary)
           }
+          .frame(maxWidth: .infinity)
           .padding(.horizontal, 12)
-          .padding(.vertical, 6)
+          .padding(.vertical, 7)
           .softControl(cornerRadius: 12, padding: 0)
         }
         .buttonStyle(.plain)
 
-        Spacer()
-
         Button(action: onAdd) {
           Image(systemName: "plus")
-            .font(.system(size: 14, weight: .bold))
-            .foregroundColor(.white)
-            .frame(width: 36, height: 36)
-            .background(
-              Circle()
-                .fill(Color.accentColor)
-            )
-            .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
+            .font(.system(size: 16, weight: .bold))
+            .foregroundColor(.appAccent)
+            .frame(width: 38, height: 38)
+            .softControl(cornerRadius: 12, padding: 0)
         }
         .buttonStyle(.plain)
       }
@@ -467,16 +465,16 @@ struct MonthHeaderView: View {
           Button(action: onPrevious) {
             Image(systemName: "chevron.left")
               .font(.system(size: 12, weight: .semibold))
-              .frame(width: 28, height: 28)
-              .softControl(cornerRadius: 14, padding: 0)
+              .frame(width: 34, height: 32)
+              .softControl(cornerRadius: 10, padding: 0)
           }
           .buttonStyle(.plain)
 
           Button(action: onNext) {
             Image(systemName: "chevron.right")
               .font(.system(size: 12, weight: .semibold))
-              .frame(width: 28, height: 28)
-              .softControl(cornerRadius: 14, padding: 0)
+              .frame(width: 34, height: 32)
+              .softControl(cornerRadius: 10, padding: 0)
           }
           .buttonStyle(.plain)
         }
@@ -492,17 +490,17 @@ struct MonthHeaderView: View {
             } label: {
               Image(systemName: mode.icon)
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(viewMode == mode ? .white : Color.textSecondary)
-                .frame(width: 32, height: 28)
+                .foregroundColor(viewMode == mode ? accentForeground : Color.textSecondary)
+                .frame(width: 36, height: 32)
                 .background(
-                  viewMode == mode ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.clear)
+                  viewMode == mode ? AnyShapeStyle(Color.appAccent) : AnyShapeStyle(.clear)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
           }
         }
-        .softControl(cornerRadius: 10, padding: 4)
+        .softControl(cornerRadius: 12, padding: 4)
       }
       .padding(.horizontal, 20)
     }
