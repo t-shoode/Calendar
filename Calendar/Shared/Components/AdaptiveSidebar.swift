@@ -3,10 +3,16 @@ import SwiftUI
 
 struct AdaptiveSidebar: View {
   @EnvironmentObject var appState: AppState
+  private var selectedTabBinding: Binding<AppTab?> {
+    Binding<AppTab?>(
+      get: { appState.selectedTab },
+      set: { if let value = $0 { appState.selectedTab = value } }
+    )
+  }
 
   var body: some View {
     NavigationSplitView {
-      List(selection: $appState.selectedTab) {
+      List(selection: selectedTabBinding) {
         NavigationLink(value: AppState.Tab.calendar) {
           Label(Localization.string(.tabCalendar), systemImage: "calendar")
         }
@@ -35,9 +41,7 @@ struct AdaptiveSidebar: View {
       case .clock:
         ClockView()
       case .weather:
-          WeatherView()
-      case nil:
-        NotFoundView()
+        WeatherView()
       }
     }
   }

@@ -65,10 +65,8 @@ struct AddTodoSheet: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        // Subtle background blending
-        MeshGradientView()
+        Color.backgroundPrimary
           .ignoresSafeArea()
-          .opacity(0.4)
           
         ScrollView {
           VStack(spacing: 20) {
@@ -162,7 +160,7 @@ struct AddTodoSheet: View {
                     .foregroundColor(.textTertiary)
                   Text("\(subtaskTitles.count)")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.appAccent)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(.ultraThinMaterial)
@@ -178,7 +176,7 @@ struct AddTodoSheet: View {
                     HStack(spacing: 10) {
                       Image(systemName: "circle")
                         .font(.system(size: 12))
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(.appAccent)
                       Text(subtaskTitles[index])
                         .font(Typography.body)
                         .lineLimit(1)
@@ -205,7 +203,7 @@ struct AddTodoSheet: View {
                   Button(action: addSubtask) {
                     Image(systemName: "plus.circle.fill")
                       .font(.system(size: 22))
-                      .foregroundColor(.accentColor)
+                      .foregroundColor(.appAccent)
                   }
                   .buttonStyle(.plain)
                   .disabled(newSubtaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

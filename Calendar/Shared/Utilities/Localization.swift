@@ -34,6 +34,7 @@ public struct Localization {
     case clearAllTemplates
     case clearEverything
     case cannotBeUndone
+    case templates
 
     // Calendar / Event List
     case selectDate
@@ -122,6 +123,7 @@ public struct Localization {
     case splashCleaningTodos
     case splashRefreshingFX
     case splashRefreshingWeather
+    case splashSyncingMonobank
     case splashFinalizing
 
     // Weekdays (Manual if needed, or use Locale)
@@ -185,6 +187,69 @@ public struct Localization {
     case build
     case mode
     case debugSettings
+
+    // Monobank
+    case monobankTitle
+    case monobankConsent
+    case monobankPersonalToken
+    case monobankPasteToken
+    case monobankConnect
+    case monobankReconnect
+    case monobankSyncNow
+    case monobankSyncing
+    case monobankImportRange
+    case monobankRange30Days
+    case monobankRange90Days
+    case monobankRange365Days
+    case monobankRangeCustom
+    case monobankFrom
+    case monobankTo
+    case monobankSyncAccounts
+    case monobankStatus
+    case monobankTokenState
+    case monobankAuthorizationState
+    case monobankLastError
+    case monobankTokenPresent
+    case monobankTokenMissing
+    case monobankNoErrors
+    case monobankConnected
+    case monobankDisconnected
+    case monobankUnauthorized
+    case monobankSyncError
+    case monobankNever
+    case monobankLastSync
+    case monobankPendingConflicts
+    case monobankDisconnect
+    case monobankDisconnectTitle
+    case monobankDisconnectKeepImported
+    case monobankDisconnectDeleteImported
+    case monobankDisconnectPrompt
+    case monobankConnectedAndSynced
+    case monobankSyncSummary(Int, Int, Int)
+    case monobankDisconnectedMessage
+    case monobankConflictsCount(Int)
+    case monobankConflictTitle
+    case monobankKeepLocal
+    case monobankUseBank
+    case monobankStatementId(String)
+    case monobankCardDetails
+    case monobankCardTheme
+    case monobankTransactions
+    case monobankMinAmount
+    case monobankMaxAmount
+    case monobankNoTransactionsForFilters
+    case monobankItemsCount(Int)
+    case pinnedTrend
+    case monobankRemoveCard
+    case monobankRemoveCardTitle
+    case monobankRemoveCardPrompt
+    case monobankRemoveCardKeepImported
+    case monobankRemoveCardDeleteImported
+    case monobankThemeAuto
+    case monobankThemeBlack
+    case monobankThemeWhite
+    case monobankThemePlatinum
+    case monobankThemeIron
 
     // Repeat Reminder
     case repeatReminder
@@ -321,10 +386,33 @@ public struct Localization {
     case budgetWarningBody(String)
     case budgetExceededTitle
     case budgetExceededBody(String)
+    case budgetRolloverAmount(String)
+    case budgetRemainingAmount(String)
+    case budgetPerDayAmount(String)
+    case budgetEnableRollover
+    case budgetDailyTarget
+    case budgetPresetEssentials
+    case budgetPresetBalanced
+    case budgetPresetStudent
     case pause
     case resume
     case activate
     case nextOccurrence(String)
+    case forecastScenario
+    case forecastScenarioBaseline
+    case forecastScenarioConservative
+    case forecastScenarioOptimistic
+    case forecastConfidenceRange
+    case forecastNetRange(String, String)
+    case whatIfPlanner
+    case whatIfScenarioTitle
+    case whatIfExtraExpenses
+    case whatIfExtraIncome
+    case whatIfLatest(String)
+    case insightsTopDrivers
+    case insightsAnomalies
+    case insightsWhatIfScenarios
+    case insightsBaseline(String)
 
     // Insights
     case spendingTrends
@@ -383,6 +471,8 @@ public struct Localization {
       return lang == .ukrainian
         ? "Цю дію не можна скасувати. Всі ваші дані будуть видалені назавжди."
         : "This action cannot be undone. All your data will be permanently deleted."
+    case .templates:
+      return lang == .ukrainian ? "Шаблони" : "Templates"
 
     // Calendar
     case .selectDate:
@@ -469,7 +559,7 @@ public struct Localization {
     case .tabAlarm:
       return lang == .ukrainian ? "Будильник" : "Alarm"
     case .tabExpenses:
-      return lang == .ukrainian ? "Витрати" : "Expenses"
+      return lang == .ukrainian ? "Банк" : "Bank"
     case .tabClock:
       return lang == .ukrainian ? "Годинник" : "Clock"
     case .tabBudget:
@@ -541,6 +631,8 @@ public struct Localization {
       return lang == .ukrainian ? "Оновлення FX курсів…" : "Refreshing FX rates…"
     case .splashRefreshingWeather:
       return lang == .ukrainian ? "Оновлення погоди…" : "Refreshing weather…"
+    case .splashSyncingMonobank:
+      return lang == .ukrainian ? "Синхронізація Monobank…" : "Syncing Monobank…"
     case .splashFinalizing:
       return lang == .ukrainian ? "Завершення…" : "Finalizing…"
 
@@ -645,6 +737,140 @@ public struct Localization {
       return lang == .ukrainian ? "Режим" : "Mode"
     case .debugSettings:
       return lang == .ukrainian ? "Налаштування налагодження" : "Debug Settings"
+
+    // Monobank
+    case .monobankTitle:
+      return "Monobank"
+    case .monobankConsent:
+      return lang == .ukrainian
+        ? "Я погоджуюсь на підключення даних Monobank"
+        : "I consent to linking Monobank data"
+    case .monobankPersonalToken:
+      return lang == .ukrainian ? "Персональний токен" : "Personal token"
+    case .monobankPasteToken:
+      return lang == .ukrainian ? "Вставте X-Token" : "Paste X-Token"
+    case .monobankConnect:
+      return lang == .ukrainian ? "Підключити" : "Connect"
+    case .monobankReconnect:
+      return lang == .ukrainian ? "Перепідключити" : "Reconnect"
+    case .monobankSyncNow:
+      return lang == .ukrainian ? "Синхронізувати" : "Sync now"
+    case .monobankSyncing:
+      return lang == .ukrainian ? "Синхронізація…" : "Syncing…"
+    case .monobankImportRange:
+      return lang == .ukrainian ? "Період імпорту" : "Import range"
+    case .monobankRange30Days:
+      return lang == .ukrainian ? "30 днів" : "30 days"
+    case .monobankRange90Days:
+      return lang == .ukrainian ? "90 днів" : "90 days"
+    case .monobankRange365Days:
+      return lang == .ukrainian ? "365 днів" : "365 days"
+    case .monobankRangeCustom:
+      return lang == .ukrainian ? "Кастомний" : "Custom"
+    case .monobankFrom:
+      return lang == .ukrainian ? "Від" : "From"
+    case .monobankTo:
+      return lang == .ukrainian ? "До" : "To"
+    case .monobankSyncAccounts:
+      return lang == .ukrainian ? "Рахунки для синхронізації" : "Sync accounts"
+    case .monobankStatus:
+      return lang == .ukrainian ? "Статус" : "Status"
+    case .monobankTokenState:
+      return lang == .ukrainian ? "Токен" : "Token"
+    case .monobankAuthorizationState:
+      return lang == .ukrainian ? "Авторизація" : "Authorization"
+    case .monobankLastError:
+      return lang == .ukrainian ? "Остання помилка" : "Last error"
+    case .monobankTokenPresent:
+      return lang == .ukrainian ? "Наявний" : "Present"
+    case .monobankTokenMissing:
+      return lang == .ukrainian ? "Відсутній" : "Missing"
+    case .monobankNoErrors:
+      return lang == .ukrainian ? "Немає" : "None"
+    case .monobankConnected:
+      return lang == .ukrainian ? "Підключено" : "Connected"
+    case .monobankDisconnected:
+      return lang == .ukrainian ? "Відключено" : "Disconnected"
+    case .monobankUnauthorized:
+      return lang == .ukrainian ? "Токен недійсний" : "Token unauthorized"
+    case .monobankSyncError:
+      return lang == .ukrainian ? "Помилка синхронізації" : "Sync error"
+    case .monobankNever:
+      return lang == .ukrainian ? "Ніколи" : "Never"
+    case .monobankLastSync:
+      return lang == .ukrainian ? "Остання синхронізація" : "Last sync"
+    case .monobankPendingConflicts:
+      return lang == .ukrainian ? "Конфлікти" : "Pending conflicts"
+    case .monobankDisconnect:
+      return lang == .ukrainian ? "Відключити" : "Disconnect"
+    case .monobankDisconnectTitle:
+      return lang == .ukrainian ? "Відключити Monobank" : "Disconnect Monobank"
+    case .monobankDisconnectKeepImported:
+      return lang == .ukrainian ? "Залишити імпортовані витрати" : "Keep imported expenses"
+    case .monobankDisconnectDeleteImported:
+      return lang == .ukrainian ? "Видалити імпортовані витрати" : "Delete imported expenses"
+    case .monobankDisconnectPrompt:
+      return lang == .ukrainian
+        ? "Оберіть, що робити з уже імпортованими транзакціями."
+        : "Choose what to do with already imported transactions."
+    case .monobankConnectedAndSynced:
+      return lang == .ukrainian ? "Підключено та синхронізовано." : "Connected and synced."
+    case .monobankSyncSummary(let imported, let updated, let conflicts):
+      return lang == .ukrainian
+        ? "Імпортовано: \(imported), Оновлено: \(updated), Конфлікти: \(conflicts)"
+        : "Imported: \(imported), Updated: \(updated), Conflicts: \(conflicts)"
+    case .monobankDisconnectedMessage:
+      return lang == .ukrainian ? "Відключено." : "Disconnected."
+    case .monobankConflictsCount(let count):
+      return lang == .ukrainian ? "Конфлікти Monobank: \(count)" : "Monobank conflicts: \(count)"
+    case .monobankConflictTitle:
+      return lang == .ukrainian ? "Конфлікт синхронізації банку" : "Bank sync conflict"
+    case .monobankKeepLocal:
+      return lang == .ukrainian ? "Залишити локальне" : "Keep local"
+    case .monobankUseBank:
+      return lang == .ukrainian ? "Використати банк" : "Use bank"
+    case .monobankStatementId(let id):
+      return lang == .ukrainian ? "ID виписки: \(id)" : "Statement ID: \(id)"
+    case .monobankCardDetails:
+      return lang == .ukrainian ? "Деталі картки" : "Card details"
+    case .monobankCardTheme:
+      return lang == .ukrainian ? "Тема картки" : "Card theme"
+    case .monobankTransactions:
+      return lang == .ukrainian ? "Транзакції" : "Transactions"
+    case .monobankMinAmount:
+      return lang == .ukrainian ? "Мін" : "Min"
+    case .monobankMaxAmount:
+      return lang == .ukrainian ? "Макс" : "Max"
+    case .monobankNoTransactionsForFilters:
+      return lang == .ukrainian
+        ? "Немає транзакцій для поточних фільтрів."
+        : "No transactions for current filters."
+    case .monobankItemsCount(let count):
+      return lang == .ukrainian ? "\(count) елементів" : "\(count) items"
+    case .pinnedTrend:
+      return lang == .ukrainian ? "Тренд закріплених" : "Pinned trend"
+    case .monobankRemoveCard:
+      return lang == .ukrainian ? "Прибрати картку" : "Remove card"
+    case .monobankRemoveCardTitle:
+      return lang == .ukrainian ? "Прибрати картку" : "Remove card"
+    case .monobankRemoveCardPrompt:
+      return lang == .ukrainian
+        ? "Оберіть, що робити з уже імпортованими транзакціями цієї картки."
+        : "Choose what to do with already imported transactions for this card."
+    case .monobankRemoveCardKeepImported:
+      return lang == .ukrainian ? "Залишити імпортовані" : "Keep imported"
+    case .monobankRemoveCardDeleteImported:
+      return lang == .ukrainian ? "Видалити імпортовані" : "Delete imported"
+    case .monobankThemeAuto:
+      return lang == .ukrainian ? "Авто" : "Auto"
+    case .monobankThemeBlack:
+      return lang == .ukrainian ? "Чорна" : "Black"
+    case .monobankThemeWhite:
+      return lang == .ukrainian ? "Біла" : "White"
+    case .monobankThemePlatinum:
+      return lang == .ukrainian ? "Платинова" : "Platinum"
+    case .monobankThemeIron:
+      return lang == .ukrainian ? "Залізна" : "Iron"
 
     // Repeat Reminder
     case .repeatReminder:
@@ -884,7 +1110,8 @@ public struct Localization {
     case .forecast:
       return lang == .ukrainian ? "Прогноз" : "Forecast"
     case .forecastNoData:
-      return lang == .ukrainian ? "Немає майбутніх витрат або доходів" : "No upcoming expenses or income"
+      return lang == .ukrainian
+        ? "Немає майбутніх витрат або доходів" : "No upcoming expenses or income"
     case .forecastMonthlyTotals:
       return lang == .ukrainian ? "Підсумки по місяцях" : "Monthly Totals"
     case .forecastDailyTotals:
@@ -969,6 +1196,22 @@ public struct Localization {
       return lang == .ukrainian
         ? "Ви досягли 100% бюджету. Витрачено: \(amount)"
         : "You reached 100% of your budget. Spent: \(amount)"
+    case .budgetRolloverAmount(let amount):
+      return lang == .ukrainian ? "Перенесення: \(amount)" : "Rollover: \(amount)"
+    case .budgetRemainingAmount(let amount):
+      return lang == .ukrainian ? "Залишок: \(amount)" : "Remaining: \(amount)"
+    case .budgetPerDayAmount(let amount):
+      return lang == .ukrainian ? "На день: \(amount)" : "Per day: \(amount)"
+    case .budgetEnableRollover:
+      return lang == .ukrainian ? "Увімкнути перенесення" : "Enable rollover"
+    case .budgetDailyTarget:
+      return lang == .ukrainian ? "Показувати ціль на день" : "Show per-day target"
+    case .budgetPresetEssentials:
+      return lang == .ukrainian ? "Необхідне" : "Essentials"
+    case .budgetPresetBalanced:
+      return lang == .ukrainian ? "Збалансований" : "Balanced"
+    case .budgetPresetStudent:
+      return lang == .ukrainian ? "Студент" : "Student"
     case .pause:
       return lang == .ukrainian ? "Призупинити" : "Pause"
     case .resume:
@@ -977,6 +1220,36 @@ public struct Localization {
       return lang == .ukrainian ? "Активувати" : "Activate"
     case .nextOccurrence(let date):
       return lang == .ukrainian ? "Наступна: \(date)" : "Next: \(date)"
+    case .forecastScenario:
+      return lang == .ukrainian ? "Сценарій" : "Scenario"
+    case .forecastScenarioBaseline:
+      return lang == .ukrainian ? "Базовий" : "Baseline"
+    case .forecastScenarioConservative:
+      return lang == .ukrainian ? "Консервативний" : "Conservative"
+    case .forecastScenarioOptimistic:
+      return lang == .ukrainian ? "Оптимістичний" : "Optimistic"
+    case .forecastConfidenceRange:
+      return lang == .ukrainian ? "Діапазон впевненості" : "Confidence range"
+    case .forecastNetRange(let low, let high):
+      return lang == .ukrainian ? "Нетто \(low) ... \(high)" : "Net \(low) ... \(high)"
+    case .whatIfPlanner:
+      return lang == .ukrainian ? "Планувальник what-if" : "What-if Planner"
+    case .whatIfScenarioTitle:
+      return lang == .ukrainian ? "Назва сценарію" : "Scenario title"
+    case .whatIfExtraExpenses:
+      return lang == .ukrainian ? "Додаткові витрати (UAH)" : "Extra expenses (UAH)"
+    case .whatIfExtraIncome:
+      return lang == .ukrainian ? "Додатковий дохід (UAH)" : "Extra income (UAH)"
+    case .whatIfLatest(let value):
+      return lang == .ukrainian ? "Останній: \(value)" : "Latest: \(value)"
+    case .insightsTopDrivers:
+      return lang == .ukrainian ? "Найбільші драйвери витрат" : "Top spend drivers"
+    case .insightsAnomalies:
+      return lang == .ukrainian ? "Аномалії" : "Anomalies"
+    case .insightsWhatIfScenarios:
+      return lang == .ukrainian ? "What-if сценарії" : "What-if scenarios"
+    case .insightsBaseline(let value):
+      return lang == .ukrainian ? "База \(value)" : "Baseline \(value)"
     case .netIncome(let amount):
       return lang == .ukrainian ? "Чистий дохід: \(amount)" : "Net: \(amount)"
     case .wasAmount(let amount):

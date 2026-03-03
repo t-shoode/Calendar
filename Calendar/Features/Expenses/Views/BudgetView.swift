@@ -63,7 +63,7 @@ struct BudgetView: View {
       VStack(spacing: 24) {
         HStack {
           Text(Localization.string(.expenseBudget))
-            .font(.system(size: 20, weight: .bold, design: .rounded))
+            .font(.system(size: 20, weight: .bold))
             .foregroundColor(.textPrimary)
           Spacer()
         }
@@ -107,7 +107,7 @@ struct BudgetView: View {
                 generateMissingExpenses()
               } label: {
                 Image(systemName: "arrow.clockwise")
-                  .foregroundColor(.accentColor)
+                  .foregroundColor(.appAccent)
               }
             }
 
@@ -209,18 +209,24 @@ struct BudgetView: View {
       EditTemplateSheet(template: template)
     }
     .sheet(isPresented: $showingBudgetEditor) {
-      BudgetLimitEditSheet(limit: editingBudgetLimit) { category, amount in
-        saveBudgetLimit(category: category, amount: amount)
+      BudgetLimitEditSheet(limit: editingBudgetLimit) {
+        category, amount, rolloverEnabled, dailyBudgetEnabled in
+        saveBudgetLimit(
+          category: category,
+          amount: amount,
+          rolloverEnabled: rolloverEnabled,
+          dailyBudgetEnabled: dailyBudgetEnabled
+        )
       }
     }
     .onAppear {
-      BudgetService.shared.evaluateBudgets(limits: budgetLimits, expenses: expenses)
+      recomputeBudgets()
     }
     .onChange(of: expenses.count) { _, _ in
-      BudgetService.shared.evaluateBudgets(limits: budgetLimits, expenses: expenses)
+      recomputeBudgets()
     }
     .onChange(of: budgetLimits.count) { _, _ in
-      BudgetService.shared.evaluateBudgets(limits: budgetLimits, expenses: expenses)
+      recomputeBudgets()
     }
   }
 
@@ -231,6 +237,17 @@ struct BudgetView: View {
           .font(.headline)
 
         Spacer()
+
+        Menu {
+          ForEach(BudgetProfilePreset.allCases) { preset in
+            Button(preset.title) {
+              applyBudgetPreset(preset)
+            }
+          }
+        } label: {
+          Label(Localization.string(.templates), systemImage: "square.grid.2x2")
+            .font(.system(size: 13, weight: .semibold))
+        }
 
         Button {
           editingBudgetLimit = nil
@@ -262,7 +279,10 @@ struct BudgetView: View {
       expenses: expenses,
       in: limit.periodEnum
     )
-    let ratio = limit.amountUAH > 0 ? spent / limit.amountUAH : 0
+    let effectiveBudget = BudgetService.shared.effectiveBudgetUAH(for: limit)
+    let remaining = BudgetService.shared.remainingBudgetUAH(for: limit, expenses: expenses)
+    let remainingPerDay = BudgetService.shared.remainingPerDayUAH(for: limit, expenses: expenses)
+    let ratio = effectiveBudget > 0 ? spent / effectiveBudget : 0
     let clampedRatio = min(max(ratio, 0), 1)
     let progressColor: Color = ratio >= 1 ? .red : (ratio >= 0.8 ? .orange : .green)
 
@@ -273,7 +293,7 @@ struct BudgetView: View {
 
         Spacer()
 
-        Text("\(Currency.uah.symbol)\(String(format: "%.0f", spent)) / \(Currency.uah.symbol)\(String(format: "%.0f", limit.amountUAH))")
+        Text("\(Currency.uah.symbol)\(String(format: "%.0f", spent)) / \(Currency.uah.symbol)\(String(format: "%.0f", effectiveBudget))")
           .font(.system(size: 12, weight: .medium))
           .foregroundColor(.secondary)
       }
@@ -298,6 +318,42 @@ struct BudgetView: View {
           deleteBudgetLimit(limit)
         }
         .font(.system(size: 12, weight: .semibold))
+      }
+
+      VStack(alignment: .leading, spacing: 4) {
+        if limit.rolloverEnabled {
+          Text(
+            Localization.string(
+              .budgetRolloverAmount(
+                "+\(Currency.uah.symbol)\(String(format: "%.0f", limit.rolloverAmountUAH))"
+              )
+            )
+          )
+          .font(.system(size: 11, weight: .medium))
+          .foregroundColor(.secondary)
+        }
+
+        Text(
+          Localization.string(
+            .budgetRemainingAmount(
+              "\(Currency.uah.symbol)\(String(format: "%.0f", remaining))"
+            )
+          )
+        )
+        .font(.system(size: 11, weight: .semibold))
+        .foregroundColor(remaining < 0 ? .red : .secondary)
+
+        if limit.dailyBudgetEnabled {
+          Text(
+            Localization.string(
+              .budgetPerDayAmount(
+                "\(Currency.uah.symbol)\(String(format: "%.0f", remainingPerDay))"
+              )
+            )
+          )
+          .font(.system(size: 11, weight: .medium))
+          .foregroundColor(remainingPerDay < 0 ? .red : .secondary)
+        }
       }
     }
     .padding(14)
@@ -353,28 +409,71 @@ struct BudgetView: View {
     RecurringExpenseService.shared.generateRecurringExpenses(context: modelContext)
   }
 
-  private func saveBudgetLimit(category: ExpenseCategory, amount: Double) {
+  private func saveBudgetLimit(
+    category: ExpenseCategory,
+    amount: Double,
+    rolloverEnabled: Bool,
+    dailyBudgetEnabled: Bool
+  ) {
     if let editingBudgetLimit {
       editingBudgetLimit.categoryRawValue = category.rawValue
       editingBudgetLimit.amountUAH = amount
+      editingBudgetLimit.rolloverEnabled = rolloverEnabled
+      editingBudgetLimit.dailyBudgetEnabled = dailyBudgetEnabled
       editingBudgetLimit.updatedAt = Date()
     } else {
       let existing = budgetLimits.first(where: { $0.category == category && $0.periodEnum == .monthly })
       if let existing {
         existing.amountUAH = amount
+        existing.rolloverEnabled = rolloverEnabled
+        existing.dailyBudgetEnabled = dailyBudgetEnabled
         existing.updatedAt = Date()
       } else {
-        let limit = BudgetLimit(category: category, amountUAH: amount, period: .monthly)
+        let limit = BudgetLimit(
+          category: category,
+          amountUAH: amount,
+          period: .monthly,
+          rolloverEnabled: rolloverEnabled,
+          dailyBudgetEnabled: dailyBudgetEnabled
+        )
         modelContext.insert(limit)
       }
     }
 
     do {
       try modelContext.save()
-      BudgetService.shared.evaluateBudgets(limits: budgetLimits, expenses: expenses)
+      recomputeBudgets()
     } catch {
       ErrorPresenter.presentOnMain(error)
     }
+  }
+
+  private func applyBudgetPreset(_ preset: BudgetProfilePreset) {
+    let baseline = max(monthlyTotal, 30_000)
+    do {
+      try BudgetService.shared.applyPreset(
+        profile: preset,
+        monthlyBudgetUAH: baseline,
+        limits: budgetLimits,
+        context: modelContext
+      )
+      recomputeBudgets()
+    } catch {
+      ErrorPresenter.presentOnMain(error)
+    }
+  }
+
+  private func recomputeBudgets() {
+    do {
+      try BudgetService.shared.refreshRollover(
+        limits: budgetLimits,
+        expenses: expenses,
+        context: modelContext
+      )
+    } catch {
+      ErrorPresenter.presentOnMain(error)
+    }
+    BudgetService.shared.evaluateBudgets(limits: budgetLimits, expenses: expenses)
   }
 
   private func deleteBudgetLimit(_ limit: BudgetLimit) {
@@ -418,11 +517,13 @@ struct BudgetSummaryCard: View {
 
 struct BudgetLimitEditSheet: View {
   let limit: BudgetLimit?
-  let onSave: (ExpenseCategory, Double) -> Void
+  let onSave: (ExpenseCategory, Double, Bool, Bool) -> Void
 
   @Environment(\.dismiss) private var dismiss
   @State private var category: ExpenseCategory = .other
   @State private var amountText: String = ""
+  @State private var rolloverEnabled = false
+  @State private var dailyBudgetEnabled = false
 
   var body: some View {
     NavigationStack {
@@ -435,6 +536,9 @@ struct BudgetLimitEditSheet: View {
 
         TextField(Localization.string(.expenseAmount), text: $amountText)
           .keyboardType(.decimalPad)
+
+        Toggle(Localization.string(.budgetEnableRollover), isOn: $rolloverEnabled)
+        Toggle(Localization.string(.budgetDailyTarget), isOn: $dailyBudgetEnabled)
       }
       .navigationTitle(limit == nil ? Localization.string(.addBudget) : Localization.string(.editBudget))
       .toolbar {
@@ -447,7 +551,7 @@ struct BudgetLimitEditSheet: View {
           Button(Localization.string(.save)) {
             let sanitized = amountText.replacingOccurrences(of: ",", with: ".")
             let amount = Double(sanitized) ?? 0
-            onSave(category, amount)
+            onSave(category, amount, rolloverEnabled, dailyBudgetEnabled)
             dismiss()
           }
           .disabled((Double(amountText.replacingOccurrences(of: ",", with: ".")) ?? 0) <= 0)
@@ -457,6 +561,8 @@ struct BudgetLimitEditSheet: View {
         if let limit {
           category = limit.category
           amountText = String(format: "%.0f", limit.amountUAH)
+          rolloverEnabled = limit.rolloverEnabled
+          dailyBudgetEnabled = limit.dailyBudgetEnabled
         }
       }
     }
@@ -508,7 +614,7 @@ struct TemplateRow: View {
 
             Text(Localization.string(.nextOccurrence(formatDate(nextDateToShow))))
               .font(.caption)
-              .foregroundColor(.accentColor)
+              .foregroundColor(.appAccent)
           }
         }
       }

@@ -129,7 +129,7 @@ struct EditTemplateSheet: View {
                   .frame(height: 48)
                   .background(
                     RoundedRectangle(cornerRadius: 12)
-                      .fill(paymentMethod == method ? Color.accentColor : Color.surfaceCard)
+                      .fill(paymentMethod == method ? Color.appAccent : Color.surfaceCard)
                   )
                 }
                 .buttonStyle(.plain)
@@ -161,7 +161,7 @@ struct EditTemplateSheet: View {
                   .foregroundColor(.secondary)
               }
             }
-            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+            .toggleStyle(SwitchToggleStyle(tint: .appAccent))
 
             if affectedCount > 0 {
               Text("Will update \(affectedCount) future item\(affectedCount == 1 ? "" : "s")")

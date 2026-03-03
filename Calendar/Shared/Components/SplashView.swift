@@ -5,57 +5,50 @@ struct SplashView: View {
 
   var body: some View {
     ZStack {
-      MeshGradientView()
+      Color.backgroundPrimary
         .ignoresSafeArea()
-
-      LinearGradient(
-        colors: [Color.black.opacity(0.25), Color.black.opacity(0.52)],
-        startPoint: .top,
-        endPoint: .bottom
-      )
-      .ignoresSafeArea()
 
       VStack(spacing: 18) {
         ZStack {
           Circle()
-            .fill(Color.accentColor.opacity(0.16))
+            .fill(Color.appAccent.opacity(0.12))
             .frame(width: 84, height: 84)
           Circle()
-            .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+            .stroke(Color.appAccent.opacity(0.24), lineWidth: 1)
             .frame(width: 92, height: 92)
           Image(systemName: "calendar")
             .font(.system(size: 34, weight: .bold))
-            .foregroundColor(.accentColor)
+            .foregroundColor(.appAccent)
         }
 
         VStack(spacing: 8) {
           Text(Localization.string(.splashStarting))
-            .font(.system(size: 18, weight: .bold, design: .rounded))
+            .font(.system(size: 18, weight: .bold))
             .foregroundColor(.textPrimary)
 
           Text(
             manager.progressMessage.isEmpty
               ? Localization.string(.splashSyncingWidgets) : manager.progressMessage
           )
-          .font(.system(size: 13, weight: .medium, design: .rounded))
+          .font(.system(size: 13, weight: .medium))
           .foregroundColor(.textSecondary)
           .multilineTextAlignment(.center)
         }
 
         ProgressView()
-          .tint(.accentColor)
+          .tint(.appAccent)
           .scaleEffect(1.1)
 
         if manager.timedOut {
           Button(action: { manager.continueInBackground() }) {
             Text(Localization.string(.splashContinueInBackground))
-              .font(.system(size: 13, weight: .semibold, design: .rounded))
-              .foregroundColor(.white)
+              .font(.system(size: 13, weight: .semibold))
+              .foregroundColor(.backgroundPrimary)
               .frame(maxWidth: .infinity)
               .frame(height: 40)
               .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                  .fill(Color.accentColor)
+                  .fill(Color.appAccent)
               )
           }
           .buttonStyle(.plain)
@@ -63,7 +56,7 @@ struct SplashView: View {
         }
 
         Text(Localization.string(.splashPreGenerating))
-          .font(.system(size: 11, weight: .medium, design: .rounded))
+          .font(.system(size: 11, weight: .medium))
           .foregroundColor(.textTertiary)
           .multilineTextAlignment(.center)
       }

@@ -13,7 +13,7 @@ struct ClockView: View {
     VStack(spacing: 12) {
       HStack {
         Text(Localization.string(.tabClock))
-          .font(.system(size: 22, weight: .bold, design: .rounded))
+          .font(.system(size: 22, weight: .bold))
           .foregroundColor(.textPrimary)
         Spacer()
       }
@@ -25,11 +25,11 @@ struct ClockView: View {
               withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) { selectedSection = .timer }
           } label: {
               Text(Localization.string(.tabTimer))
-                  .font(.system(size: 13, weight: .semibold, design: .rounded))
+                  .font(.system(size: 13, weight: .semibold))
                   .foregroundColor(selectedSection == .timer ? .white : .textSecondary)
                   .frame(maxWidth: .infinity)
                   .frame(height: 36)
-                  .background(selectedSection == .timer ? Color.accentColor : Color.clear)
+                  .background(selectedSection == .timer ? Color.appAccent : Color.clear)
                   .clipShape(RoundedRectangle(cornerRadius: 10))
           }
           .buttonStyle(.plain)
@@ -38,11 +38,11 @@ struct ClockView: View {
               withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) { selectedSection = .alarm }
           } label: {
               Text(Localization.string(.tabAlarm))
-                  .font(.system(size: 13, weight: .semibold, design: .rounded))
+                  .font(.system(size: 13, weight: .semibold))
                   .foregroundColor(selectedSection == .alarm ? .white : .textSecondary)
                   .frame(maxWidth: .infinity)
                   .frame(height: 36)
-                  .background(selectedSection == .alarm ? Color.accentColor : Color.clear)
+                  .background(selectedSection == .alarm ? Color.appAccent : Color.clear)
                   .clipShape(RoundedRectangle(cornerRadius: 10))
           }
           .buttonStyle(.plain)

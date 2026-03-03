@@ -106,7 +106,7 @@ struct TodoRow: View {
           } label: {
             Image(systemName: isSubtasksExpanded ? "chevron.up.circle.fill" : "chevron.down.circle")
               .font(.system(size: 18, weight: .semibold))
-              .foregroundColor(.accentColor)
+              .foregroundColor(.appAccent)
           }
           .buttonStyle(.plain)
           .pressableScale(0.9)

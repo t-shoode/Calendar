@@ -7,24 +7,29 @@ final class WidgetSyncTests: XCTestCase {
   var container: ModelContainer!
   var context: ModelContext!
   var defaults: UserDefaults!
+  var suiteName: String!
 
   override func setUpWithError() throws {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     container = try ModelContainer(
       for: Event.self, TodoItem.self, TodoCategory.self, Expense.self,
-      RecurringExpenseTemplate.self, configurations: config)
+      RecurringExpenseTemplate.self, MonobankConnection.self, MonobankAccount.self,
+      MonobankStatementItem.self, MonobankSyncState.self, MonobankConflict.self,
+      configurations: config)
     context = ModelContext(container)
 
     // unique suite for isolation
-    let suite = "test.widgets.\(UUID().uuidString)"
-    defaults = UserDefaults(suiteName: suite)
-    defaults.removePersistentDomain(forName: suite)
+    suiteName = "test.widgets.\(UUID().uuidString)"
+    defaults = UserDefaults(suiteName: suiteName)
+    defaults.removePersistentDomain(forName: suiteName)
   }
 
   override func tearDownWithError() throws {
-    let suite = defaults?.suiteName ?? ""
-    defaults?.removePersistentDomain(forName: suite)
+    if let suiteName {
+      defaults?.removePersistentDomain(forName: suiteName)
+    }
     defaults = nil
+    suiteName = nil
   }
 
   func testEventSync_writesWidgetEventDataToInjectedUserDefaults() throws {

@@ -24,8 +24,18 @@ final class DuplicateDetectionService {
 
     do {
       let expenses = try context.fetch(descriptor)
+      let expensesById = Dictionary(uniqueKeysWithValues: expenses.map { ($0.id, $0) })
       let existing = try context.fetch(suggestionDescriptor)
-      let dismissed = Set(existing.filter { $0.statusEnum != .pending }.map { $0.pairKey })
+      var dismissed: Set<String> = []
+      for suggestion in existing where suggestion.statusEnum != .pending {
+        dismissed.insert(suggestion.pairKey)
+        if
+          let expenseA = expensesById[suggestion.expenseIdA],
+          let expenseB = expensesById[suggestion.expenseIdB]
+        {
+          dismissed.insert(semanticPairKey(expenseA: expenseA, expenseB: expenseB))
+        }
+      }
       let pending = existing.filter { $0.statusEnum == .pending }
       for item in pending { context.delete(item) }
 
@@ -42,10 +52,12 @@ final class DuplicateDetectionService {
           guard let score = duplicateScore(expenseA: a, expenseB: b), score >= minimumScore else {
             continue
           }
+          let pairKey = semanticPairKey(expenseA: a, expenseB: b)
           let suggestion = DuplicateSuggestion(
             expenseIdA: a.id,
             expenseIdB: b.id,
-            score: score
+            score: score,
+            pairKey: pairKey
           )
           if dismissed.contains(suggestion.pairKey) { continue }
           newSuggestions.append(suggestion)
@@ -130,5 +142,24 @@ final class DuplicateDetectionService {
     let union = tokensA.union(tokensB).count
     if union == 0 { return 0 }
     return Double(intersection) / Double(union)
+  }
+
+  private func semanticPairKey(expenseA: Expense, expenseB: Expense) -> String {
+    let first = semanticFingerprint(for: expenseA)
+    let second = semanticFingerprint(for: expenseB)
+    let ordered = [first, second].sorted()
+    return "\(ordered[0])-\(ordered[1])"
+  }
+
+  private func semanticFingerprint(for expense: Expense) -> String {
+    let normalizedName = patternService.normalizeMerchant(expense.merchant ?? expense.title)
+    let day = Calendar.current.startOfDay(for: expense.date)
+    let amountUAHCents = Int((expense.currencyEnum.convertToUAH(expense.amount) * 100).rounded())
+    return [
+      normalizedName,
+      expense.isIncome ? "income" : "expense",
+      "\(Int(day.timeIntervalSince1970))",
+      "\(amountUAHCents)",
+    ].joined(separator: "|")
   }
 }

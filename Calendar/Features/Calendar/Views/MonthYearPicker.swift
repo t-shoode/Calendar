@@ -65,7 +65,7 @@ struct MonthYearPicker: View {
                 .padding(.vertical, 12)
                 .background(
                   RoundedRectangle(cornerRadius: Spacing.smallRadius)
-                    .fill(tempMonth == index ? Color.accentColor : Color.clear)
+                    .fill(tempMonth == index ? Color.appAccent : Color.clear)
                 )
                 .foregroundColor(tempMonth == index ? .white : Color.textPrimary)
             }
@@ -85,7 +85,7 @@ struct MonthYearPicker: View {
                 }) {
                   Text(String(year))
                     .font(.system(size: 24, weight: year == tempYear ? .bold : .regular))
-                    .foregroundColor(year == tempYear ? .accentColor : Color.textPrimary)
+                    .foregroundColor(year == tempYear ? .appAccent : Color.textPrimary)
                     .padding(.vertical, 8)
                     .frame(maxWidth: .infinity)
                 }

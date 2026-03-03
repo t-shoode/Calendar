@@ -16,17 +16,32 @@ class ExpenseViewModel {
     isIncome: Bool,
     context: ModelContext
   ) throws {
+    var resolvedCategory = category
+    var matchedRuleId: UUID?
+    if let rule = CategorizationRuleService.shared.matchingRule(
+      context: context,
+      merchant: merchant,
+      mcc: nil,
+      paymentMethod: paymentMethod
+    ),
+      rule.autoApply
+    {
+      resolvedCategory = ExpenseCategory(rawValue: rule.targetCategory) ?? category
+      matchedRuleId = rule.id
+    }
+
     let expense = Expense(
       title: title,
       amount: amount,
       date: date,
-      categories: [category],
+      categories: [resolvedCategory],
       paymentMethod: paymentMethod,
       currency: currency,
       merchant: merchant,
       notes: notes,
       isIncome: isIncome
     )
+    expense.categorizationRuleId = matchedRuleId
     context.insert(expense)
     try context.save()
     syncExpensesToWidget(context: context)

@@ -9,9 +9,13 @@ final class ForbiddenPatternsTests: XCTestCase {
     var violations: [String] = []
 
     let forbiddenPatterns = [
-      "UserDefaults\.synchronize\\(\\)",
-      "try\?\\s+context\\.save\\(",
-      "try\?\\s+modelContext\\.save\\(" // catch try? modelContext.save()
+      "UserDefaults\\.synchronize\\(\\)",
+      "try\\?\\s+context\\.save\\(",
+      "try\\?\\s+modelContext\\.save\\(",  // catch try? modelContext.save()
+      "\\bLinearGradient\\b",
+      "\\bRadialGradient\\b",
+      "\\bAngularGradient\\b",
+      "\\bMeshGradientView\\b"
     ]
 
     while let file = enumerator.nextObject() as? String {

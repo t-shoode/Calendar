@@ -52,7 +52,7 @@ struct CSVImportView: View {
     VStack(spacing: 24) {
       Image(systemName: "doc.text")
         .font(.system(size: 64))
-        .foregroundColor(.accentColor)
+        .foregroundColor(.appAccent)
 
       Text(Localization.string(.importBankStatement))
         .font(.title2.bold())
@@ -73,7 +73,7 @@ struct CSVImportView: View {
         .foregroundColor(.white)
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.accentColor)
+        .background(Color.appAccent)
         .cornerRadius(12)
       }
       .padding(.horizontal)
@@ -134,7 +134,8 @@ struct CSVImportView: View {
                 },
                 onFrequencyChange: { frequency in
                   customFrequencies[suggestion.id] = frequency
-                }
+                },
+                onDismiss: nil
               )
             }
           }
@@ -155,7 +156,7 @@ struct CSVImportView: View {
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(selectedSuggestions.isEmpty ? Color.gray : Color.accentColor)
+            .background(selectedSuggestions.isEmpty ? Color.gray : Color.appAccent)
             .cornerRadius(12)
           }
           .disabled(selectedSuggestions.isEmpty)
@@ -168,10 +169,10 @@ struct CSVImportView: View {
               Text(Localization.string(.importAllTransactions))
             }
             .font(.subheadline)
-            .foregroundColor(.accentColor)
+            .foregroundColor(.appAccent)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color.accentColor.opacity(0.1))
+            .background(Color.appAccent.opacity(0.1))
             .cornerRadius(12)
           }
 
@@ -273,7 +274,8 @@ struct CSVImportView: View {
           occurrences: suggestion.occurrences,
           categories: suggestion.categories,
           suggestedAmount: suggestion.suggestedAmount,
-          confidence: suggestion.confidence
+          confidence: suggestion.confidence,
+          isIncome: suggestion.isIncome
         )
       }
     }

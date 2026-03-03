@@ -12,7 +12,9 @@ final class StartupManagerTests: XCTestCase {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     container = try ModelContainer(
       for: Event.self, TodoItem.self, TodoCategory.self, Expense.self,
-      RecurringExpenseTemplate.self, configurations: config)
+      RecurringExpenseTemplate.self, MonobankConnection.self, MonobankAccount.self,
+      MonobankStatementItem.self, MonobankSyncState.self, MonobankConflict.self,
+      configurations: config)
     context = ModelContext(container)
   }
 

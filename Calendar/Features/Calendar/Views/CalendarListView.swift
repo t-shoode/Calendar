@@ -93,11 +93,11 @@ private struct CalendarListDayRow: View {
       VStack(spacing: 2) {
         Text(date.formatted(.dateTime.day()))
           .font(.system(size: 22, weight: isToday ? .bold : .medium))
-          .foregroundColor(isToday ? .accentColor : Color.textPrimary)
+          .foregroundColor(isToday ? .appAccent : Color.textPrimary)
 
         Text(date.formatted(.dateTime.weekday(.abbreviated)).uppercased())
           .font(.system(size: 11, weight: .medium))
-          .foregroundColor(isToday ? .accentColor : Color.textTertiary)
+          .foregroundColor(isToday ? .appAccent : Color.textTertiary)
       }
       .frame(width: 48)
       .padding(.vertical, 12)

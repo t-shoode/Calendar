@@ -110,7 +110,7 @@ struct AddTemplateSheet: View {
                   .frame(height: 48)
                   .background(
                     RoundedRectangle(cornerRadius: 12)
-                      .fill(paymentMethod == method ? Color.accentColor : Color.surfaceCard)
+                      .fill(paymentMethod == method ? Color.appAccent : Color.surfaceCard)
                   )
                 }
                 .buttonStyle(.plain)

@@ -45,9 +45,9 @@ struct ControlButton: View {
   @ViewBuilder
   private var backgroundView: some View {
     if isPrimary {
-      Color.accentColor
+      Color.appAccent
         .clipShape(Circle())
-        .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
+        .shadow(color: Color.appAccent.opacity(0.2), radius: 8, x: 0, y: 4)
     } else {
       Circle()
         .fill(Color.secondaryFill.opacity(0.78))

@@ -39,7 +39,7 @@ struct AlarmCard: View {
       HStack {
         Image(systemName: "alarm.fill")
           .font(.system(size: 40))
-          .foregroundColor(.accentColor)
+          .foregroundColor(.appAccent)
 
         Spacer()
 
@@ -52,7 +52,7 @@ struct AlarmCard: View {
 
       Button(action: { showingTimePicker = true }) {
         Text(Formatters.timeFormatter.string(from: alarm.time))
-          .font(.system(size: 72, weight: .light, design: .rounded))
+          .font(.system(size: 72, weight: .light))
           .foregroundColor(alarm.isEnabled ? .primary : .secondary)
       }
       .buttonStyle(.plain)
@@ -108,17 +108,17 @@ struct EmptyAlarmView: View {
     VStack(spacing: 32) {
       ZStack {
         RoundedRectangle(cornerRadius: 36, style: .continuous)
-          .fill(Color.accentColor.opacity(0.1))
+          .fill(Color.appAccent.opacity(0.1))
           .frame(width: 140, height: 140)
           .overlay(
             RoundedRectangle(cornerRadius: 36, style: .continuous)
-              .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
+              .stroke(Color.appAccent.opacity(0.2), lineWidth: 1)
           )
 
         Image(systemName: "alarm.fill")
           .font(.system(size: 64))
-          .foregroundColor(.accentColor)
-          .shadow(color: Color.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
+          .foregroundColor(.appAccent)
+          .shadow(color: Color.appAccent.opacity(0.3), radius: 10, x: 0, y: 5)
       }
       .padding(.bottom, 10)
       .accessibilityHidden(true)
@@ -147,8 +147,8 @@ struct EmptyAlarmView: View {
         .padding(.horizontal, 32)
         .background(
           Capsule()
-            .fill(Color.accentColor)
-            .shadow(color: Color.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
+            .fill(Color.appAccent)
+            .shadow(color: Color.appAccent.opacity(0.3), radius: 10, x: 0, y: 5)
         )
       }
       .buttonStyle(.plain)

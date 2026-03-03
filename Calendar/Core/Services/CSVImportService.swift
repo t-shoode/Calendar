@@ -135,7 +135,8 @@ class CSVImportService {
         notes: nil,
         frequency: suggestion.frequency,
         startDate: suggestion.occurrences.first ?? Date(),
-        occurrenceCount: suggestion.occurrenceCount
+        occurrenceCount: suggestion.occurrenceCount,
+        isIncome: suggestion.isIncome
       )
 
       context.insert(template)

@@ -110,7 +110,7 @@ struct AddExpenseSheet: View {
                 .frame(height: 56)
                 .background(
                   RoundedRectangle(cornerRadius: 12)
-                    .fill(currency == c ? Color.accentColor : Color.surfaceCard)
+                    .fill(currency == c ? Color.appAccent : Color.surfaceCard)
                 )
               }
               .buttonStyle(.plain)
@@ -137,7 +137,7 @@ struct AddExpenseSheet: View {
                 .frame(height: 48)
                 .background(
                   RoundedRectangle(cornerRadius: 12)
-                    .fill(paymentMethod == method ? Color.accentColor : Color.surfaceCard)
+                    .fill(paymentMethod == method ? Color.appAccent : Color.surfaceCard)
                 )
               }
               .buttonStyle(.plain)

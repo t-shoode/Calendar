@@ -6,11 +6,12 @@ struct TemplateSuggestionCard: View {
   let customFrequency: ExpenseFrequency?
   let onToggle: () -> Void
   let onFrequencyChange: (ExpenseFrequency) -> Void
-  
+  let onDismiss: (() -> Void)?
+
   private var displayFrequency: ExpenseFrequency {
     customFrequency ?? suggestion.frequency
   }
-  
+
   var body: some View {
     Button(action: onToggle) {
       VStack(alignment: .leading, spacing: 12) {
@@ -19,40 +20,51 @@ struct TemplateSuggestionCard: View {
           // Selection indicator
           Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
             .font(.title3)
-            .foregroundColor(isSelected ? .accentColor : .secondary)
-          
+            .foregroundColor(isSelected ? .appAccent : .secondary)
+
           VStack(alignment: .leading, spacing: 4) {
             Text(suggestion.merchant)
               .font(.headline)
               .foregroundColor(.primary)
-            
+
             HStack(spacing: 8) {
               Text("₴\(String(format: "%.2f", suggestion.suggestedAmount))")
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(.accentColor)
-              
+                .foregroundColor(.appAccent)
+
               Text("•")
                 .foregroundColor(.secondary)
-              
+
               Text(Localization.string(.detectedXTimes(suggestion.occurrenceCount)))
                 .font(.caption)
                 .foregroundColor(.secondary)
             }
           }
-          
+
           Spacer()
-          
+
           // Confidence badge
           ConfidenceBadge(confidence: suggestion.confidence)
+
+          if let onDismiss {
+            Button {
+              onDismiss()
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+          }
         }
-        
+
         // Frequency selector
         HStack(spacing: 8) {
           Text(Localization.string(.frequency) + ":")
             .font(.caption)
             .foregroundColor(.secondary)
-          
+
           ForEach(ExpenseFrequency.allCases.filter { $0 != .oneTime }, id: \.self) { freq in
             Button {
               onFrequencyChange(freq)
@@ -64,20 +76,20 @@ struct TemplateSuggestionCard: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(
-                  displayFrequency == freq ? Color.accentColor : Color(.systemGray5)
+                  displayFrequency == freq ? Color.appAccent : Color(.systemGray5)
                 )
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
           }
         }
-        
+
         // Categories
         HStack(spacing: 6) {
           Text(Localization.string(.category) + ":")
             .font(.caption)
             .foregroundColor(.secondary)
-          
+
           ForEach(suggestion.categories.prefix(3), id: \.self) { category in
             HStack(spacing: 2) {
               Image(systemName: category.icon)
@@ -92,19 +104,19 @@ struct TemplateSuggestionCard: View {
             .cornerRadius(4)
           }
         }
-        
+
         // Occurrence dates preview
         HStack(spacing: 4) {
           Text(Localization.string(.lastOccurrences) + ":")
             .font(.caption2)
             .foregroundColor(.secondary)
-          
+
           let recentDates = Array(suggestion.occurrences.suffix(3))
           ForEach(recentDates.indices, id: \.self) { index in
             Text(formatDate(recentDates[index]))
               .font(.caption2)
               .foregroundColor(.secondary)
-            
+
             if index < recentDates.count - 1 {
               Text("•")
                 .font(.caption2)
@@ -116,16 +128,17 @@ struct TemplateSuggestionCard: View {
       .padding()
       .background(
         RoundedRectangle(cornerRadius: 12)
-          .fill(isSelected ? Color.accentColor.opacity(0.05) : Color(.systemBackground))
+          .fill(isSelected ? Color.appAccent.opacity(0.05) : Color(.systemBackground))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 12)
-          .stroke(isSelected ? Color.accentColor : Color.gray.opacity(0.2), lineWidth: isSelected ? 2 : 1)
+          .stroke(
+            isSelected ? Color.appAccent : Color.gray.opacity(0.2), lineWidth: isSelected ? 2 : 1)
       )
     }
     .buttonStyle(.plain)
   }
-  
+
   private func formatDate(_ date: Date) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "dd MMM"
@@ -136,7 +149,7 @@ struct TemplateSuggestionCard: View {
 
 struct ConfidenceBadge: View {
   let confidence: Double
-  
+
   private var color: Color {
     switch confidence {
     case 0.8...1.0: return .green
@@ -144,7 +157,7 @@ struct ConfidenceBadge: View {
     default: return .orange
     }
   }
-  
+
   private var label: String {
     switch confidence {
     case 0.8...1.0: return Localization.string(.priorityHigh)
@@ -152,7 +165,7 @@ struct ConfidenceBadge: View {
     default: return Localization.string(.priorityLow)
     }
   }
-  
+
   var body: some View {
     Text(label)
       .font(.caption2)
@@ -173,9 +186,9 @@ struct ConfidenceBadge: View {
         amount: 149.0,
         frequency: .monthly,
         occurrences: [
-          Date().addingTimeInterval(-60*24*60*60),
-          Date().addingTimeInterval(-30*24*60*60),
-          Date()
+          Date().addingTimeInterval(-60 * 24 * 60 * 60),
+          Date().addingTimeInterval(-30 * 24 * 60 * 60),
+          Date(),
         ],
         categories: [.subscriptions],
         suggestedAmount: 149.0,
@@ -184,7 +197,8 @@ struct ConfidenceBadge: View {
       isSelected: true,
       customFrequency: nil,
       onToggle: {},
-      onFrequencyChange: { _ in }
+      onFrequencyChange: { _ in },
+      onDismiss: nil
     )
   }
   .padding()

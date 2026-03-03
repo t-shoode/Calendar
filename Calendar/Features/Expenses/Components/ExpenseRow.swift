@@ -33,7 +33,7 @@ struct ExpenseRow: View {
 
       VStack(alignment: .trailing, spacing: 4) {
         Text("\(expense.currencyEnum.symbol)\(String(format: "%.2f", expense.amount))")
-          .font(.system(size: 17, weight: .bold, design: .rounded))
+          .font(.system(size: 17, weight: .bold))
           .foregroundColor(expense.isIncome ? .green : .textPrimary)
           .contentTransition(.numericText())
 

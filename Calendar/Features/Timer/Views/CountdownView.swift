@@ -49,7 +49,7 @@ struct CountdownView: View {
         VStack(alignment: .leading, spacing: 12) {
           HStack {
             Text(Localization.string(.timer))
-              .font(.system(size: 12, weight: .semibold, design: .rounded))
+              .font(.system(size: 12, weight: .semibold))
               .foregroundColor(.textTertiary)
             Spacer()
           }

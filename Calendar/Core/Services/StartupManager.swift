@@ -83,6 +83,10 @@ final class StartupManager: ObservableObject {
       await MainActor.run { self.progressMessage = Localization.string(.splashRefreshingWeather) }
       await Task { @MainActor in await WeatherViewModel().refreshIfNeeded() }.value
 
+      // Monobank sync (non-blocking best effort)
+      await MainActor.run { self.progressMessage = Localization.string(.splashSyncingMonobank) }
+      await MonobankSyncService.shared.syncIfNeededOnStartup(context: backgroundContext)
+
       // Finalize on main actor
       await MainActor.run {
         self.progressMessage = Localization.string(.splashFinalizing)

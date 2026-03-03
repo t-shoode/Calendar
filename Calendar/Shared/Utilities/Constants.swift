@@ -8,22 +8,31 @@ public struct Constants {
   }
 
   struct UI {
+    // Legacy names kept for compatibility with existing views/components.
     static let glassCornerRadius: CGFloat = 20
     static let glassCornerRadiusSmall: CGFloat = 12
     static let glassBorderWidth: CGFloat = 0.5
     static let glassBorderOpacity: Double = 0.2
-    static let cardPadding: CGFloat = 16
-    static let sectionSpacing: CGFloat = 20
+    static let cardPadding: CGFloat = AppSpacing.cardPadding
+    static let sectionSpacing: CGFloat = AppSpacing.sectionSpacing
   }
 
   struct Storage {
     static let appGroupIdentifier = "group.com.shoode.calendar"
   }
 
-
-
   struct Widget {
     static let weatherDataKey = "widgetWeatherData"
+    static let monobankBalancesKey = "widgetMonobankBalances"
+    static let monobankAuthorizedKey = "widgetMonobankAuthorized"
+    static let quickActionScheme = "calendarapp"
+    static let quickActionHost = "widget-action"
+  }
+
+  struct WidgetAction {
+    static let quickAddExpenseNotification = Notification.Name("widget.quickAddExpense")
+    static let openPinnedBankCardNotification = Notification.Name("widget.openPinnedBankCard")
+    static let markTodoDoneNotification = Notification.Name("widget.markTodoDone")
   }
 
   struct Holiday {

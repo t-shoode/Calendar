@@ -26,23 +26,23 @@ struct GlassCard<Content: View>: View {
       .padding(Spacing.cardPadding)
       .background(
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-          .fill(Color.surfaceCard.opacity(materialOpacity))
+          .fill(AppPalette.cardFill.opacity(materialOpacity))
       )
       .overlay(
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-          .stroke(Color.border.opacity(0.3), lineWidth: 0.7)
+          .stroke(AppPalette.sectionBorder, lineWidth: 0.7)
       )
-      .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 6)
+      .shadow(color: AppPalette.subtleShadow, radius: AppElevation.low, x: 0, y: 2)
   }
 
   private var materialOpacity: Double {
     switch material {
     case .ultraThin:
-      return 0.82
+      return 0.95
     case .thin:
-      return 0.9
-    case .regular:
       return 0.98
+    case .regular:
+      return 1
     }
   }
 }

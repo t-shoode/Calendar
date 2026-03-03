@@ -31,12 +31,12 @@ struct PresetButton: View {
     Button(action: action) {
       VStack(spacing: 0) {
         Text("\(Int(preset.duration / 60))")
-          .font(.system(size: 24, weight: .black, design: .rounded))
+          .font(.system(size: 24, weight: .black))
           .foregroundColor(.textPrimary)
         Text(Localization.string(.minutesUnit).uppercased())
-          .font(.system(size: 9, weight: .semibold, design: .rounded))
+          .font(.system(size: 9, weight: .semibold))
           .tracking(1)
-          .foregroundColor(.accentColor)
+          .foregroundColor(.appAccent)
       }
       .frame(maxWidth: .infinity)
       .frame(height: 24)

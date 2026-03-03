@@ -33,7 +33,7 @@ struct HolidayCountryPicker: View {
             Spacer()
             if selectedCountryCode.isEmpty {
               Image(systemName: "checkmark")
-                .foregroundColor(.accentColor)
+                .foregroundColor(.appAccent)
             }
           }
         }
@@ -74,7 +74,7 @@ struct HolidayCountryPicker: View {
                 Spacer()
                 if country.isoCode == selectedCountryCode {
                   Image(systemName: "checkmark")
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(.appAccent)
                 }
               }
             }

@@ -31,6 +31,11 @@
 		F554F0062F34F9E6008B6601 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F554F0032F34F9E6008B6601 /* SettingsSheet.swift */; };
 		F556A0362F33CD160071D8B8 /* NotFoundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F556A0352F33CD160071D8B8 /* NotFoundView.swift */; };
 		F556A0542F33F0BD0071D8B8 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = F556A0532F33F0BD0071D8B8 /* Localization.swift */; };
+		F57A615E2F55A9090073E676 /* MonobankModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57A615D2F55A9090073E676 /* MonobankModels.swift */; };
+		F57A61612F55A9140073E676 /* MonobankSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57A61602F55A9140073E676 /* MonobankSyncService.swift */; };
+		F57A61622F55A9140073E676 /* MonobankKeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57A615F2F55A9140073E676 /* MonobankKeychainStore.swift */; };
+		F57A61652F55A9230073E676 /* MonobankProjectionMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57A61632F55A9230073E676 /* MonobankProjectionMapperTests.swift */; };
+		F57A61662F55A9230073E676 /* MonobankWidgetBalanceSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F57A61642F55A9230073E676 /* MonobankWidgetBalanceSyncTests.swift */; };
 		F593C11E2F33C234007F8DEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F593C0E62F33C234007F8DEB /* Assets.xcassets */; };
 		F593C11F2F33C234007F8DEB /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = F593C11B2F33C234007F8DEB /* Formatters.swift */; };
 		F593C1202F33C234007F8DEB /* CountdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F593C1092F33C234007F8DEB /* CountdownView.swift */; };
@@ -205,6 +210,11 @@
 		F556A0262F33C9E70071D8B8 /* CalendarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalendarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F556A0352F33CD160071D8B8 /* NotFoundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotFoundView.swift; path = Calendar/Shared/Components/NotFoundView.swift; sourceTree = SOURCE_ROOT; };
 		F556A0532F33F0BD0071D8B8 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
+		F57A615D2F55A9090073E676 /* MonobankModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonobankModels.swift; sourceTree = "<group>"; };
+		F57A615F2F55A9140073E676 /* MonobankKeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonobankKeychainStore.swift; sourceTree = "<group>"; };
+		F57A61602F55A9140073E676 /* MonobankSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonobankSyncService.swift; sourceTree = "<group>"; };
+		F57A61632F55A9230073E676 /* MonobankProjectionMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonobankProjectionMapperTests.swift; sourceTree = "<group>"; };
+		F57A61642F55A9230073E676 /* MonobankWidgetBalanceSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonobankWidgetBalanceSyncTests.swift; sourceTree = "<group>"; };
 		F593C0E42F33C234007F8DEB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Calendar/AppDelegate.swift; sourceTree = "<group>"; };
 		F593C0E62F33C234007F8DEB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Calendar/Assets.xcassets; sourceTree = "<group>"; };
 		F593C0E72F33C234007F8DEB /* CalendarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CalendarApp.swift; path = Calendar/CalendarApp.swift; sourceTree = "<group>"; };
@@ -461,6 +471,7 @@
 				F5A362D02F40875300030163 /* CSVImportSession.swift */,
 				F5E000032F50000100AA0001 /* DuplicateSuggestion.swift */,
 				F5B897BF2F54A7610027C977 /* EventOccurrence.swift */,
+				F57A615D2F55A9090073E676 /* MonobankModels.swift */,
 				F5E000042F50000100AA0001 /* FXRate.swift */,
 				F5A362D12F40875300030163 /* RecurringExpenseTemplate.swift */,
 				F593C0EB2F33C234007F8DEB /* TimerSession.swift */,
@@ -482,6 +493,8 @@
 				F593C0EE2F33C234007F8DEB /* NotificationService.swift */,
 				F5A362D42F40876200030163 /* CSVImportService.swift */,
 				F5E000062F50000100AA0001 /* DuplicateDetectionService.swift */,
+				F57A615F2F55A9140073E676 /* MonobankKeychainStore.swift */,
+				F57A61602F55A9140073E676 /* MonobankSyncService.swift */,
 				F5B897C12F54A76D0027C977 /* EventRecurrenceService.swift */,
 				F5E000072F50000100AA0001 /* FXRateService.swift */,
 				F5E000082F50000100AA0001 /* FXRateStore.swift */,
@@ -790,6 +803,8 @@
 				F5E0000C2F50000100AA0001 /* DuplicateDetectionServiceTests.swift */,
 				F5E0000D2F50000100AA0001 /* FXRateServiceTests.swift */,
 				F5B897C32F54A7820027C977 /* EventRecurrenceTests.swift */,
+				F57A61632F55A9230073E676 /* MonobankProjectionMapperTests.swift */,
+				F57A61642F55A9230073E676 /* MonobankWidgetBalanceSyncTests.swift */,
 				F5B897C42F54A7820027C977 /* ExpenseConversionTests.swift */,
 				F5B897C52F54A7820027C977 /* ForbiddenPatternsTests.swift */,
 				F5B897C62F54A7820027C977 /* RecurringExpenseTests.swift */,
@@ -1034,12 +1049,15 @@
 				F554EFFD2F34F4DF008B6601 /* CategoryCard.swift in Sources */,
 				F554EFFE2F34F4DF008B6601 /* RecurrencePicker.swift in Sources */,
 				F51F1B462F3BD2FA007A3F3E /* FloatingErrorView.swift in Sources */,
+				F57A615E2F55A9090073E676 /* MonobankModels.swift in Sources */,
 				F5E000132F50000100AA0001 /* FXRate.swift in Sources */,
 				F5E000162F50000100AA0001 /* FXRateService.swift in Sources */,
 				F5B897C22F54A76D0027C977 /* EventRecurrenceService.swift in Sources */,
 				F5E000172F50000100AA0001 /* FXRateStore.swift in Sources */,
 				F554EFE62F34F4AA008B6601 /* TodoCategory.swift in Sources */,
 				F554EFE72F34F4AA008B6601 /* TodoItem.swift in Sources */,
+				F57A61612F55A9140073E676 /* MonobankSyncService.swift in Sources */,
+				F57A61622F55A9140073E676 /* MonobankKeychainStore.swift in Sources */,
 				F593C12F2F33C234007F8DEB /* Event.swift in Sources */,
 				F593C1302F33C234007F8DEB /* Date+Extensions.swift in Sources */,
 				F554F0002F34F99C008B6601 /* TopBarView.swift in Sources */,
@@ -1106,6 +1124,8 @@
 				F5E0001C2F50000100AA0001 /* FXRateServiceTests.swift in Sources */,
 				F5E0001D2F50000100AA0001 /* ForecastServiceTests.swift in Sources */,
 				F5B897C82F54A7820027C977 /* WidgetSyncTests.swift in Sources */,
+				F57A61652F55A9230073E676 /* MonobankProjectionMapperTests.swift in Sources */,
+				F57A61662F55A9230073E676 /* MonobankWidgetBalanceSyncTests.swift in Sources */,
 				F5B897C92F54A7820027C977 /* EventRecurrenceTests.swift in Sources */,
 				F5B897CA2F54A7820027C977 /* ExpenseConversionTests.swift in Sources */,
 				F5B897CB2F54A7820027C977 /* ForbiddenPatternsTests.swift in Sources */,

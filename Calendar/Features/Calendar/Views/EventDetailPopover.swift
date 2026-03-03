@@ -96,7 +96,7 @@ struct EventDetailPopover: View {
               Label(Localization.string(.edit), systemImage: "pencil")
                 .font(Typography.body)
                 .fontWeight(.medium)
-                .foregroundColor(.accentColor)
+                .foregroundColor(.appAccent)
             }
             .buttonStyle(.plain)
           }

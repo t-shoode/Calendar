@@ -59,7 +59,7 @@ struct AdaptiveTabBar: View {
           }
       }
       .tabItem {
-        Image(systemName: "dollarsign")
+        Image(systemName: "building.columns")
         Text(Localization.string(.tabExpenses))
       }
       .tag(AppState.Tab.expenses)

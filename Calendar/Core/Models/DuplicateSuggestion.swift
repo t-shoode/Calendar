@@ -22,14 +22,24 @@ final class DuplicateSuggestion {
     set { status = newValue.rawValue }
   }
 
-  init(expenseIdA: UUID, expenseIdB: UUID, score: Double, status: DuplicateStatus = .pending) {
+  init(
+    expenseIdA: UUID,
+    expenseIdB: UUID,
+    score: Double,
+    status: DuplicateStatus = .pending,
+    pairKey: String? = nil
+  ) {
     self.id = UUID()
     self.expenseIdA = expenseIdA
     self.expenseIdB = expenseIdB
     self.score = score
     self.status = status.rawValue
-    let ordered = [expenseIdA.uuidString, expenseIdB.uuidString].sorted()
-    self.pairKey = "\(ordered[0])-\(ordered[1])"
+    if let pairKey, !pairKey.isEmpty {
+      self.pairKey = pairKey
+    } else {
+      let ordered = [expenseIdA.uuidString, expenseIdB.uuidString].sorted()
+      self.pairKey = "\(ordered[0])-\(ordered[1])"
+    }
     self.createdAt = Date()
   }
 }

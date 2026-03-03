@@ -43,7 +43,7 @@ final class RecurringExpenseTests: XCTestCase {
     try context.save()
 
     // Update template categories and run propagation
-    template.categories = [ExpenseCategory.fitness.rawValue]
+    template.categories = [ExpenseCategory.healthcare.rawValue]
     template.updatedAt = Date()
     try context.save()
 
@@ -57,7 +57,7 @@ final class RecurringExpenseTests: XCTestCase {
     let fetched = try context.fetch(FetchDescriptor<Expense>()).first {
       $0.templateId == template.id
     }
-    XCTAssertEqual(fetched?.categories.first, ExpenseCategory.fitness.rawValue)
+    XCTAssertEqual(fetched?.categories.first, ExpenseCategory.healthcare.rawValue)
 
     // Undo and verify categories restored to original
     let undone = RecurringExpenseService.shared.undoLastTemplateUpdate(

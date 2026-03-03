@@ -8,9 +8,9 @@ struct FloatingTabBar: View {
 
   var body: some View {
     content
-#if os(iOS)
-      .sensoryFeedback(.selection, trigger: selectedTab)
-#endif
+      #if os(iOS)
+        .sensoryFeedback(.selection, trigger: selectedTab)
+      #endif
   }
 
   private var content: some View {
@@ -25,7 +25,7 @@ struct FloatingTabBar: View {
 
       ZStack(alignment: .leading) {
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .fill(Color.accentColor)
+          .fill(Color.appAccent)
           .frame(width: itemWidth, height: itemHeight)
           .offset(x: containerInset + selectedIndex * (itemWidth + itemSpacing))
           .animation(.spring(response: 0.28, dampingFraction: 0.86), value: selectedTab)
@@ -70,7 +70,7 @@ struct FloatingTabBar: View {
     switch tab {
     case .calendar: return "calendar.circle.fill"
     case .tasks: return "checkmark.circle.fill"
-    case .expenses: return "creditcard.circle.fill"
+    case .expenses: return "building.columns.circle.fill"
     case .clock: return "clock"
     case .weather: return "cloud.sun"
     }

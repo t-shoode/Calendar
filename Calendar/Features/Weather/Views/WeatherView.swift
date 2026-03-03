@@ -15,7 +15,7 @@ public struct WeatherView: View {
                 VStack(spacing: 24) {
                     HStack {
                         Text(viewModel.weatherData?.city ?? Localization.string(.weather))
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.textPrimary)
                         Spacer()
                     }
@@ -128,7 +128,7 @@ public struct WeatherView: View {
                 
                 ZStack {
                     Circle()
-                        .fill(LinearGradient(colors: [.accentColor.opacity(0.3), .clear], startPoint: .top, endPoint: .bottom))
+                        .fill(Color.appAccent.opacity(0.22))
                         .frame(width: 200, height: 200)
                         .blur(radius: 40)
                     
@@ -139,7 +139,7 @@ public struct WeatherView: View {
                 }
                 
                 Text("\(Int(current.temperature))°")
-                    .font(.system(size: 84, weight: .thin, design: .rounded))
+                    .font(.system(size: 84, weight: .thin))
                     .foregroundColor(.textPrimary)
                 
                 Text(current.code.description)
