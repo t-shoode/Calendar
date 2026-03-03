@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct ClockView: View {
+  @Environment(\.colorScheme) private var colorScheme
   @State private var selectedSection: ClockSection = .timer
 
   enum ClockSection {
@@ -9,8 +10,12 @@ struct ClockView: View {
     case alarm
   }
 
+  private var accentForeground: Color {
+    colorScheme == .dark ? .backgroundPrimary : .white
+  }
+
   var body: some View {
-    VStack(spacing: 12) {
+    VStack(spacing: 10) {
       HStack {
         Text(Localization.string(.tabClock))
           .font(.system(size: 22, weight: .bold))
@@ -18,7 +23,7 @@ struct ClockView: View {
         Spacer()
       }
       .padding(.horizontal, 20)
-      .padding(.top, 8)
+      .padding(.top, 4)
 
       HStack(spacing: 0) {
           Button {
@@ -26,11 +31,11 @@ struct ClockView: View {
           } label: {
               Text(Localization.string(.tabTimer))
                   .font(.system(size: 13, weight: .semibold))
-                  .foregroundColor(selectedSection == .timer ? .white : .textSecondary)
+                  .foregroundColor(selectedSection == .timer ? accentForeground : .textSecondary)
                   .frame(maxWidth: .infinity)
-                  .frame(height: 36)
+                  .frame(height: 38)
                   .background(selectedSection == .timer ? Color.appAccent : Color.clear)
-                  .clipShape(RoundedRectangle(cornerRadius: 10))
+                  .clipShape(RoundedRectangle(cornerRadius: 11))
           }
           .buttonStyle(.plain)
           
@@ -39,18 +44,18 @@ struct ClockView: View {
           } label: {
               Text(Localization.string(.tabAlarm))
                   .font(.system(size: 13, weight: .semibold))
-                  .foregroundColor(selectedSection == .alarm ? .white : .textSecondary)
+                  .foregroundColor(selectedSection == .alarm ? accentForeground : .textSecondary)
                   .frame(maxWidth: .infinity)
-                  .frame(height: 36)
+                  .frame(height: 38)
                   .background(selectedSection == .alarm ? Color.appAccent : Color.clear)
-                  .clipShape(RoundedRectangle(cornerRadius: 10))
+                  .clipShape(RoundedRectangle(cornerRadius: 11))
           }
           .buttonStyle(.plain)
       }
       .padding(4)
       .softControl(cornerRadius: 14, padding: 4)
       .padding(.horizontal, 20)
-      .padding(.top, 10)
+      .padding(.top, 8)
 
       ZStack {
         switch selectedSection {
@@ -67,7 +72,8 @@ struct ClockView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .safeAreaPadding(.top, 4)
-    .safeAreaPadding(.bottom, 96)
+    .safeAreaPadding(.bottom, 8)
+    .navigationBarHidden(true)
     .background(Color.clear)
   }
 }

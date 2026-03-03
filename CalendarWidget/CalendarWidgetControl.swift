@@ -6,6 +6,7 @@
 //
 
 import AppIntents
+import Foundation
 import SwiftUI
 import WidgetKit
 
@@ -42,7 +43,8 @@ extension CalendarWidgetControl {
         }
 
         func currentValue(configuration: TimerConfiguration) async throws -> Value {
-            let isRunning = true // Check if the timer is running
+            let defaults = UserDefaults(suiteName: "group.com.shoode.calendar") ?? .standard
+            let isRunning = defaults.bool(forKey: "countdown.isRunning")
             return CalendarWidgetControl.Value(isRunning: isRunning, name: configuration.timerName)
         }
     }
@@ -71,7 +73,30 @@ struct StartTimerIntent: SetValueIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        // Start the timer…
+        let defaults = UserDefaults(suiteName: "group.com.shoode.calendar") ?? .standard
+
+        if value {
+            let payload = ShortcutPayload(kind: "startTimer", amount: 300)
+            if let data = try? JSONEncoder().encode(payload) {
+                defaults.set(data, forKey: "shortcuts.pending.action")
+            }
+            defaults.set(true, forKey: "hasActiveTimer")
+        } else {
+            defaults.set(false, forKey: "countdown.isRunning")
+            defaults.set(false, forKey: "hasActiveTimer")
+        }
+
+        WidgetCenter.shared.reloadTimelines(ofKind: "CalendarWidget")
+        WidgetCenter.shared.reloadTimelines(ofKind: "CombinedWidget")
         return .result()
     }
+}
+
+private struct ShortcutPayload: Codable {
+    let kind: String
+    let title: String? = nil
+    let amount: Double?
+    let merchant: String? = nil
+    let notes: String? = nil
+    let targetTab: String? = nil
 }

@@ -620,14 +620,6 @@ struct CombinedWidgetEntryView: View {
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)
-      .background(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .fill(scheme.surface)
-      )
-      .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(scheme.cardBorderStrong, lineWidth: 0.6)
-      )
       .padding(.horizontal, 10)
       .padding(.top, 8)
 
@@ -733,14 +725,6 @@ struct CombinedWidgetEntryView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
       }
-      .background(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .fill(scheme.surfaceElevated)
-      )
-      .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(scheme.cardBorder, lineWidth: 0.6)
-      )
       .padding(.horizontal, 10)
       .padding(.top, 8)
 
@@ -943,8 +927,6 @@ struct UpcomingItemCell: View {
     }
     .padding(.horizontal, 10)
     .padding(.vertical, 8)
-    .background(scheme.surface)
-    .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 }
 
@@ -973,8 +955,6 @@ struct UpcomingItemPlaceholderCell: View {
     }
     .padding(.horizontal, 10)
     .padding(.vertical, 8)
-    .background(scheme.surface.opacity(0.5))
-    .clipShape(RoundedRectangle(cornerRadius: 10))
   }
 }
 

@@ -250,6 +250,9 @@ final class SubscriptionItem {
   var currency: String
   var billingCycle: String
   var nextRenewalDate: Date
+  var leadTimeDays: Int = 3
+  var lastChargeDate: Date?
+  var nextChargeAmount: Double = 0
   var isActive: Bool
   var sourceTemplateId: UUID?
   var sourceRuleId: UUID?
@@ -263,6 +266,9 @@ final class SubscriptionItem {
     currency: Currency,
     billingCycle: BillingCycle,
     nextRenewalDate: Date,
+    leadTimeDays: Int = 3,
+    lastChargeDate: Date? = nil,
+    nextChargeAmount: Double? = nil,
     isActive: Bool = true,
     sourceTemplateId: UUID? = nil,
     sourceRuleId: UUID? = nil
@@ -274,6 +280,9 @@ final class SubscriptionItem {
     self.currency = currency.rawValue
     self.billingCycle = billingCycle.rawValue
     self.nextRenewalDate = nextRenewalDate
+    self.leadTimeDays = leadTimeDays
+    self.lastChargeDate = lastChargeDate
+    self.nextChargeAmount = nextChargeAmount ?? amount
     self.isActive = isActive
     self.sourceTemplateId = sourceTemplateId
     self.sourceRuleId = sourceRuleId
@@ -294,6 +303,9 @@ final class BillItem {
   var category: String
   var reminderLeadTime: TimeInterval
   var isPaid: Bool
+  var lastPaidAt: Date?
+  var lastPaidAmountUAH: Double?
+  var linkedExpenseId: UUID?
   var createdAt: Date
   var updatedAt: Date
 
@@ -317,6 +329,9 @@ final class BillItem {
     self.category = category.rawValue
     self.reminderLeadTime = reminderLeadTime
     self.isPaid = false
+    self.lastPaidAt = nil
+    self.lastPaidAmountUAH = nil
+    self.linkedExpenseId = nil
     self.createdAt = Date()
     self.updatedAt = Date()
   }
@@ -354,6 +369,23 @@ final class SavingsGoal {
     self.isArchived = isArchived
     self.createdAt = Date()
     self.updatedAt = Date()
+  }
+}
+
+@Model
+final class SavingsContribution {
+  var id: UUID
+  var goalId: UUID
+  var amountUAH: Double
+  var date: Date
+  var note: String?
+
+  init(goalId: UUID, amountUAH: Double, date: Date = Date(), note: String? = nil) {
+    self.id = UUID()
+    self.goalId = goalId
+    self.amountUAH = amountUAH
+    self.date = date
+    self.note = note
   }
 }
 
@@ -402,6 +434,13 @@ final class ReceiptAttachment {
   var amountGuess: Double?
   var dateGuess: Date?
   var confidence: Double
+  var fileName: String?
+  var mimeType: String?
+  var fileSize: Int64?
+  var sha256: String?
+  var ocrStatus: String = "pending"
+  var ocrLanguage: String?
+  var ocrProcessedAt: Date?
   var createdAt: Date
 
   init(
@@ -411,7 +450,14 @@ final class ReceiptAttachment {
     merchantGuess: String? = nil,
     amountGuess: Double? = nil,
     dateGuess: Date? = nil,
-    confidence: Double = 0
+    confidence: Double = 0,
+    fileName: String? = nil,
+    mimeType: String? = nil,
+    fileSize: Int64? = nil,
+    sha256: String? = nil,
+    ocrStatus: String = "pending",
+    ocrLanguage: String? = nil,
+    ocrProcessedAt: Date? = nil
   ) {
     self.id = UUID()
     self.expenseId = expenseId
@@ -421,6 +467,13 @@ final class ReceiptAttachment {
     self.amountGuess = amountGuess
     self.dateGuess = dateGuess
     self.confidence = confidence
+    self.fileName = fileName
+    self.mimeType = mimeType
+    self.fileSize = fileSize
+    self.sha256 = sha256
+    self.ocrStatus = ocrStatus
+    self.ocrLanguage = ocrLanguage
+    self.ocrProcessedAt = ocrProcessedAt
     self.createdAt = Date()
   }
 }
@@ -458,6 +511,23 @@ final class NetWorthAccount {
 }
 
 @Model
+final class NetWorthSnapshot {
+  var id: UUID
+  var date: Date
+  var assetsUAH: Double
+  var liabilitiesUAH: Double
+  var netUAH: Double
+
+  init(date: Date = Date(), assetsUAH: Double, liabilitiesUAH: Double) {
+    self.id = UUID()
+    self.date = date
+    self.assetsUAH = assetsUAH
+    self.liabilitiesUAH = liabilitiesUAH
+    self.netUAH = assetsUAH - liabilitiesUAH
+  }
+}
+
+@Model
 final class TripBudget {
   var id: UUID
   var name: String
@@ -465,6 +535,9 @@ final class TripBudget {
   var endDate: Date
   var budgetUAH: Double
   var homeCurrency: String
+  var note: String?
+  var tripCurrency: String = Currency.uah.rawValue
+  var alertThresholdPercent: Double = 0.8
   var isActive: Bool
   var createdAt: Date
   var updatedAt: Date
@@ -475,6 +548,9 @@ final class TripBudget {
     endDate: Date,
     budgetUAH: Double,
     homeCurrency: Currency = .uah,
+    note: String? = nil,
+    tripCurrency: Currency = .uah,
+    alertThresholdPercent: Double = 0.8,
     isActive: Bool = true
   ) {
     self.id = UUID()
@@ -483,6 +559,9 @@ final class TripBudget {
     self.endDate = endDate
     self.budgetUAH = budgetUAH
     self.homeCurrency = homeCurrency.rawValue
+    self.note = note
+    self.tripCurrency = tripCurrency.rawValue
+    self.alertThresholdPercent = alertThresholdPercent
     self.isActive = isActive
     self.createdAt = Date()
     self.updatedAt = Date()

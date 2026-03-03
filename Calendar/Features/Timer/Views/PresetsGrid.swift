@@ -29,18 +29,18 @@ struct PresetButton: View {
 
   var body: some View {
     Button(action: action) {
-      VStack(spacing: 0) {
+      VStack(spacing: 2) {
         Text("\(Int(preset.duration / 60))")
-          .font(.system(size: 24, weight: .black))
+          .font(.system(size: 22, weight: .bold))
           .foregroundColor(.textPrimary)
         Text(Localization.string(.minutesUnit).uppercased())
-          .font(.system(size: 9, weight: .semibold))
-          .tracking(1)
-          .foregroundColor(.appAccent)
+          .font(.system(size: 11, weight: .semibold))
+          .tracking(0.8)
+          .foregroundColor(.textSecondary)
       }
       .frame(maxWidth: .infinity)
-      .frame(height: 24)
-      .softCard(cornerRadius: 14, padding: 12, shadow: false)
+      .frame(height: 42)
+      .softControl(cornerRadius: 14, padding: 10)
     }
     .buttonStyle(.plain)
   }

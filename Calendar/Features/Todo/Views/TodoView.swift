@@ -7,12 +7,14 @@ enum TodoSortOrder: String, CaseIterable {
   case manual
   case newestFirst
   case oldestFirst
+  case smart
 
   var label: String {
     switch self {
     case .manual: return Localization.string(.manual)
     case .newestFirst: return Localization.string(.newestFirst)
     case .oldestFirst: return Localization.string(.oldestFirst)
+    case .smart: return "Smart"
     }
   }
 }
@@ -47,6 +49,7 @@ struct TodoView: View {
   @StateObject private var viewModel = TodoViewModel()
   @Query(sort: \TodoCategory.createdAt) private var categories: [TodoCategory]
   @Query(sort: \TodoItem.createdAt) private var allTodosRaw: [TodoItem]
+  @Query(sort: \Expense.date, order: .reverse) private var expenses: [Expense]
   @Environment(\.modelContext) private var modelContext
 
   @State private var showingAddTodo = false
@@ -346,6 +349,15 @@ struct TodoView: View {
       sorted = todos.sorted { $0.createdAt > $1.createdAt }
     case .oldestFirst:
       sorted = todos.sorted { $0.createdAt < $1.createdAt }
+    case .smart:
+      sorted = todos.sorted { lhs, rhs in
+        let leftLinked = lhs.linkedExpenseId.flatMap { id in expenses.first(where: { $0.id == id }) }
+        let rightLinked = rhs.linkedExpenseId.flatMap { id in expenses.first(where: { $0.id == id }) }
+        let leftScore = SmartPriorityService.shared.score(todo: lhs, linkedExpense: leftLinked)
+        let rightScore = SmartPriorityService.shared.score(todo: rhs, linkedExpense: rightLinked)
+        if leftScore != rightScore { return leftScore > rightScore }
+        return lhs.createdAt > rhs.createdAt
+      }
     }
     return sorted.sorted { ($0.isPinned ? 0 : 1) < ($1.isPinned ? 0 : 1) }
   }
@@ -384,6 +396,7 @@ private struct CategoryDetailView: View {
   @StateObject private var viewModel = TodoViewModel()
   @Query(sort: \TodoCategory.createdAt) private var categories: [TodoCategory]
   @Query(sort: \TodoItem.createdAt) private var allTodosRaw: [TodoItem]
+  @Query(sort: \Expense.date, order: .reverse) private var expenses: [Expense]
   @Environment(\.modelContext) private var modelContext
   @Environment(\.dismiss) private var dismiss
 
@@ -650,6 +663,15 @@ private struct CategoryDetailView: View {
       sorted = todos.sorted { $0.createdAt > $1.createdAt }
     case .oldestFirst:
       sorted = todos.sorted { $0.createdAt < $1.createdAt }
+    case .smart:
+      sorted = todos.sorted { lhs, rhs in
+        let leftLinked = lhs.linkedExpenseId.flatMap { id in expenses.first(where: { $0.id == id }) }
+        let rightLinked = rhs.linkedExpenseId.flatMap { id in expenses.first(where: { $0.id == id }) }
+        let leftScore = SmartPriorityService.shared.score(todo: lhs, linkedExpense: leftLinked)
+        let rightScore = SmartPriorityService.shared.score(todo: rhs, linkedExpense: rightLinked)
+        if leftScore != rightScore { return leftScore > rightScore }
+        return lhs.createdAt > rhs.createdAt
+      }
     }
     return sorted.sorted { ($0.isPinned ? 0 : 1) < ($1.isPinned ? 0 : 1) }
   }

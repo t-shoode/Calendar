@@ -6,6 +6,7 @@ import os
 class CSVImportService {
 
   private let patternDetection = PatternDetectionService()
+  private let mappingService = CSVMappingService.shared
 
   /// Import CSV file and return result
   func importCSV(
@@ -31,8 +32,13 @@ class CSVImportService {
       )
     }
 
-    let allTransactions = CSVParser.parse(csvString: csvString)
+    let (allTransactions, mappingId, invalidRowCount) = parseTransactions(
+      csvString: csvString,
+      context: context
+    )
     session.transactionCount = allTransactions.count
+    session.mappingId = mappingId
+    session.invalidRowCount = invalidRowCount
 
     // Filter out duplicates
     let (uniqueTransactions, duplicates) = filterDuplicates(
@@ -40,6 +46,7 @@ class CSVImportService {
       existingExpenses: existingExpenses
     )
     session.duplicateCount = duplicates.count
+    session.warningCount = invalidRowCount > 0 ? 1 : 0
 
     // Detect patterns
     var suggestions = patternDetection.detectPatterns(from: uniqueTransactions)
@@ -64,6 +71,27 @@ class CSVImportService {
       success: true,
       error: nil
     )
+  }
+
+  private func parseTransactions(
+    csvString: String,
+    context: ModelContext
+  ) -> (transactions: [CSVTransaction], mappingId: UUID?, invalidRowCount: Int) {
+    let lines = csvString.components(separatedBy: .newlines)
+    guard let headerLine = lines.first else {
+      return ([], nil, 0)
+    }
+
+    let headers = headerLine
+      .split(separator: ",")
+      .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    if let mapping = try? mappingService.loadMapping(context: context, headers: headers) {
+      let parsed = mappingService.parseWithMapping(csvString: csvString, mapping: mapping)
+      return (parsed.transactions, mapping.id, parsed.invalidRows)
+    }
+
+    return (CSVParser.parse(csvString: csvString), nil, 0)
   }
 
   /// Filter out transactions that are duplicates of existing expenses

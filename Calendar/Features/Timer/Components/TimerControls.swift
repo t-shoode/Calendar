@@ -9,13 +9,13 @@ struct TimerControls: View {
   let onStop: () -> Void
 
   var body: some View {
-    HStack(spacing: 16) {
+    HStack(spacing: 18) {
       ControlButton(icon: "arrow.counterclockwise", action: onReset)
 
       if isRunning && !isPaused {
-        ControlButton(icon: "pause.fill", size: 80, isPrimary: true, action: onPause)
+        ControlButton(icon: "pause.fill", size: 84, isPrimary: true, action: onPause)
       } else {
-        ControlButton(icon: "play.fill", size: 80, isPrimary: true, action: onPlay)
+        ControlButton(icon: "play.fill", size: 84, isPrimary: true, action: onPlay)
       }
 
       ControlButton(icon: "stop.fill", action: onStop)
@@ -24,17 +24,22 @@ struct TimerControls: View {
 }
 
 struct ControlButton: View {
+  @Environment(\.colorScheme) private var colorScheme
   let icon: String
   var size: CGFloat = 60
   var isPrimary: Bool = false
   let action: () -> Void
+
+  private var accentForeground: Color {
+    colorScheme == .dark ? .backgroundPrimary : .white
+  }
 
   var body: some View {
     Button(action: action) {
       Image(systemName: icon)
         .font(.system(size: size * 0.35, weight: .semibold))
         .frame(width: size, height: size)
-        .foregroundColor(isPrimary ? .white : .textPrimary)
+        .foregroundColor(isPrimary ? accentForeground : .textPrimary)
         .background(backgroundView)
     }
     .buttonStyle(.plain)
@@ -45,9 +50,12 @@ struct ControlButton: View {
   @ViewBuilder
   private var backgroundView: some View {
     if isPrimary {
-      Color.appAccent
-        .clipShape(Circle())
-        .shadow(color: Color.appAccent.opacity(0.2), radius: 8, x: 0, y: 4)
+      Circle()
+        .fill(Color.appAccent)
+        .overlay(
+          Circle()
+            .stroke(Color.border.opacity(0.2), lineWidth: 0.7)
+        )
     } else {
       Circle()
         .fill(Color.secondaryFill.opacity(0.78))

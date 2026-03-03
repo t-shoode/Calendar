@@ -1,8 +1,9 @@
 import Combine
 import Foundation
+import SwiftData
 import SwiftUI
 
-enum AppTab: String, CaseIterable, Identifiable {
+enum AppTab: String, CaseIterable, Identifiable, Codable, Sendable {
   case calendar
   case tasks
   case expenses
@@ -19,6 +20,81 @@ class AppState: ObservableObject {
   @Published var selectedDate: Date = Date()
 
   init() {}
+}
+
+@Model
+final class NotificationPreferences {
+  var id: UUID
+  var todoEnabled: Bool
+  var eventEnabled: Bool
+  var budgetEnabled: Bool
+  var subscriptionEnabled: Bool
+  var billEnabled: Bool
+  var cashflowEnabled: Bool
+  var timerEnabled: Bool
+  var alarmEnabled: Bool
+  var quietHoursEnabled: Bool
+  var quietStartHour: Int
+  var quietEndHour: Int
+  var digestEnabled: Bool
+  var digestHour: Int
+  var throttleMinutes: Int
+  var updatedAt: Date
+
+  init(
+    todoEnabled: Bool = true,
+    eventEnabled: Bool = true,
+    budgetEnabled: Bool = true,
+    subscriptionEnabled: Bool = true,
+    billEnabled: Bool = true,
+    cashflowEnabled: Bool = true,
+    timerEnabled: Bool = true,
+    alarmEnabled: Bool = true,
+    quietHoursEnabled: Bool = false,
+    quietStartHour: Int = 22,
+    quietEndHour: Int = 8,
+    digestEnabled: Bool = false,
+    digestHour: Int = 9,
+    throttleMinutes: Int = 5
+  ) {
+    self.id = UUID()
+    self.todoEnabled = todoEnabled
+    self.eventEnabled = eventEnabled
+    self.budgetEnabled = budgetEnabled
+    self.subscriptionEnabled = subscriptionEnabled
+    self.billEnabled = billEnabled
+    self.cashflowEnabled = cashflowEnabled
+    self.timerEnabled = timerEnabled
+    self.alarmEnabled = alarmEnabled
+    self.quietHoursEnabled = quietHoursEnabled
+    self.quietStartHour = quietStartHour
+    self.quietEndHour = quietEndHour
+    self.digestEnabled = digestEnabled
+    self.digestHour = digestHour
+    self.throttleMinutes = throttleMinutes
+    self.updatedAt = Date()
+  }
+}
+
+@Model
+final class OnboardingState {
+  var id: UUID
+  var hasCompleted: Bool
+  var lastShownVersion: String
+  var completedAt: Date?
+  var lastUpdatedAt: Date
+
+  init(
+    hasCompleted: Bool = false,
+    lastShownVersion: String = "",
+    completedAt: Date? = nil
+  ) {
+    self.id = UUID()
+    self.hasCompleted = hasCompleted
+    self.lastShownVersion = lastShownVersion
+    self.completedAt = completedAt
+    self.lastUpdatedAt = Date()
+  }
 }
 
 enum AppDeepLinkAction: Equatable {

@@ -1,6 +1,56 @@
 import Foundation
 import SwiftData
 
+enum CSVImportField: String, CaseIterable, Codable, Identifiable {
+  case date
+  case merchant
+  case amount
+  case currency
+  case notes
+
+  var id: String { rawValue }
+
+  var title: String {
+    switch self {
+    case .date: return "Date"
+    case .merchant: return "Merchant"
+    case .amount: return "Amount"
+    case .currency: return "Currency"
+    case .notes: return "Notes"
+    }
+  }
+}
+
+@Model
+final class CSVImportMapping {
+  var id: UUID
+  var name: String
+  var headerFingerprint: String
+  var delimiter: String
+  var dateFormat: String
+  var fieldMapJSON: String
+  var isDefault: Bool
+  var updatedAt: Date
+
+  init(
+    name: String,
+    headerFingerprint: String,
+    delimiter: String = ",",
+    dateFormat: String = "dd.MM.yyyy HH:mm:ss",
+    fieldMapJSON: String,
+    isDefault: Bool = false
+  ) {
+    self.id = UUID()
+    self.name = name
+    self.headerFingerprint = headerFingerprint
+    self.delimiter = delimiter
+    self.dateFormat = dateFormat
+    self.fieldMapJSON = fieldMapJSON
+    self.isDefault = isDefault
+    self.updatedAt = Date()
+  }
+}
+
 @Model
 class CSVImportSession {
   var id: UUID
@@ -10,6 +60,9 @@ class CSVImportSession {
   var templatesSuggested: Int
   var templatesCreated: Int
   var duplicateCount: Int
+  var mappingId: UUID?
+  var invalidRowCount: Int = 0
+  var warningCount: Int = 0
   var isDeleted: Bool
   
   /// Date when this session should be hard deleted (30 days after import)
@@ -27,7 +80,10 @@ class CSVImportSession {
     transactionCount: Int = 0,
     templatesSuggested: Int = 0,
     templatesCreated: Int = 0,
-    duplicateCount: Int = 0
+    duplicateCount: Int = 0,
+    mappingId: UUID? = nil,
+    invalidRowCount: Int = 0,
+    warningCount: Int = 0
   ) {
     self.id = UUID()
     self.importDate = Date()
@@ -36,6 +92,9 @@ class CSVImportSession {
     self.templatesSuggested = templatesSuggested
     self.templatesCreated = templatesCreated
     self.duplicateCount = duplicateCount
+    self.mappingId = mappingId
+    self.invalidRowCount = invalidRowCount
+    self.warningCount = warningCount
     self.isDeleted = false
   }
 }

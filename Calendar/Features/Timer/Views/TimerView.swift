@@ -13,8 +13,8 @@ struct TimerView: View {
           .transition(.opacity)
       }
       .frame(maxWidth: .infinity)
-      .padding(.top, 8)
-      .padding(.bottom, 12)
+      .padding(.top, 6)
+      .padding(.bottom, 96)
     }
     .scrollBounceBehavior(.basedOnSize)
     .onAppear {

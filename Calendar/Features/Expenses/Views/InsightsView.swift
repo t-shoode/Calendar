@@ -7,10 +7,31 @@ struct InsightsView: View {
 
   @Environment(\.modelContext) private var modelContext
   @Query(sort: \WhatIfScenario.createdAt, order: .reverse) private var scenarios: [WhatIfScenario]
+  @Query(sort: \SubscriptionItem.updatedAt, order: .reverse) private var subscriptions:
+    [SubscriptionItem]
+  @Query(sort: \BillItem.updatedAt, order: .reverse) private var bills: [BillItem]
+  @Query(sort: \SavingsGoal.updatedAt, order: .reverse) private var goals: [SavingsGoal]
+  @Query(sort: \NetWorthAccount.updatedAt, order: .reverse) private var netWorthAccounts:
+    [NetWorthAccount]
+  @Query(sort: \TripBudget.updatedAt, order: .reverse) private var trips: [TripBudget]
+  @Query(sort: \WeeklyReviewSnapshot.generatedAt, order: .reverse) private var reviews:
+    [WeeklyReviewSnapshot]
   @State private var selectedPeriod: InsightsPeriod = .monthly
   @State private var whatIfTitle = ""
   @State private var whatIfExpenseText = ""
   @State private var whatIfIncomeText = ""
+  @State private var activeFinancePanel: FinancePanel?
+
+  enum FinancePanel: String, Identifiable {
+    case subscriptions
+    case bills
+    case goals
+    case netWorth
+    case trips
+    case reviews
+
+    var id: String { rawValue }
+  }
 
   enum InsightsPeriod: String, CaseIterable {
     case all, weekly, monthly, yearly
@@ -155,6 +176,50 @@ struct InsightsView: View {
         .softControl(cornerRadius: 12, padding: 4)
 
         totalsCard
+
+        VStack(alignment: .leading, spacing: 10) {
+          Text("Finance Modules")
+            .font(.system(size: 12, weight: .black))
+            .tracking(1)
+            .foregroundColor(.secondary)
+
+          financeRow(
+            title: "Subscriptions",
+            subtitle: "\(subscriptions.filter { $0.isActive }.count) active",
+            systemImage: "repeat"
+          ) { activeFinancePanel = .subscriptions }
+
+          financeRow(
+            title: "Bills",
+            subtitle: "\(bills.filter { !$0.isPaid }.count) unpaid",
+            systemImage: "doc.text"
+          ) { activeFinancePanel = .bills }
+
+          financeRow(
+            title: "Savings Goals",
+            subtitle: "\(goals.filter { !$0.isArchived }.count) active",
+            systemImage: "target"
+          ) { activeFinancePanel = .goals }
+
+          financeRow(
+            title: "Net Worth",
+            subtitle: "\(netWorthAccounts.filter { $0.includeInTotal }.count) accounts",
+            systemImage: "chart.line.uptrend.xyaxis"
+          ) { activeFinancePanel = .netWorth }
+
+          financeRow(
+            title: "Trip Budgets",
+            subtitle: "\(trips.filter { $0.isActive }.count) active",
+            systemImage: "airplane"
+          ) { activeFinancePanel = .trips }
+
+          financeRow(
+            title: "Weekly Reviews",
+            subtitle: "\(reviews.count) snapshots",
+            systemImage: "calendar.badge.clock"
+          ) { activeFinancePanel = .reviews }
+        }
+        .softCard(cornerRadius: 12, padding: 16, shadow: false)
 
         if !lastMonthExpenses.isEmpty {
           VStack(alignment: .leading, spacing: 16) {
@@ -316,6 +381,52 @@ struct InsightsView: View {
       .padding(.horizontal, 20)
       .padding(.bottom, 120)
     }
+    .sheet(item: $activeFinancePanel) { panel in
+      switch panel {
+      case .subscriptions:
+        SubscriptionCenterSheet()
+      case .bills:
+        BillsDashboardSheet()
+      case .goals:
+        SavingsGoalsSheet()
+      case .netWorth:
+        NetWorthSheet()
+      case .trips:
+        TripBudgetsSheet()
+      case .reviews:
+        WeeklyReviewsSheet()
+      }
+    }
+  }
+
+  private func financeRow(
+    title: String,
+    subtitle: String,
+    systemImage: String,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      HStack(spacing: 10) {
+        Image(systemName: systemImage)
+          .font(.system(size: 14, weight: .semibold))
+          .frame(width: 20)
+          .foregroundColor(.appAccent)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(title)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(.textPrimary)
+          Text(subtitle)
+            .font(.system(size: 11))
+            .foregroundColor(.secondary)
+        }
+        Spacer()
+        Image(systemName: "chevron.right")
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundColor(.secondary)
+      }
+      .padding(.vertical, 3)
+    }
+    .buttonStyle(.plain)
   }
 
   private var totalsCard: some View {
@@ -593,6 +704,295 @@ struct CategoryBreakdownRow: View {
       .frame(height: 4)
     }
     .padding(.vertical, 4)
+  }
+}
+
+private struct SubscriptionCenterSheet: View {
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) private var modelContext
+  @Query(sort: \SubscriptionItem.nextRenewalDate) private var subscriptions: [SubscriptionItem]
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section("Active Subscriptions") {
+          if subscriptions.isEmpty {
+            Text("No subscriptions yet")
+              .foregroundColor(.secondary)
+          } else {
+            ForEach(subscriptions) { item in
+              HStack {
+                VStack(alignment: .leading) {
+                  Text(item.name)
+                  Text(item.nextRenewalDate.formatted(date: .abbreviated, time: .omitted))
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                }
+                Spacer()
+                Text("\(item.amount, specifier: "%.2f") \(item.currency.uppercased())")
+                  .font(.system(size: 12, weight: .semibold))
+                Toggle("", isOn: Binding(
+                  get: { item.isActive },
+                  set: { item.isActive = $0; item.updatedAt = Date(); try? modelContext.save() }
+                ))
+              }
+            }
+          }
+        }
+      }
+      .navigationTitle("Subscriptions")
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Close") { dismiss() }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button("Detect") {
+            let candidates = (try? SubscriptionService.shared.detectCandidates(context: modelContext)) ?? []
+            for candidate in candidates where subscriptions.contains(where: { $0.id == candidate.id }) == false {
+              try? SubscriptionService.shared.save(candidate, context: modelContext)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+private struct BillsDashboardSheet: View {
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) private var modelContext
+  @Query(sort: \BillItem.dueDate) private var bills: [BillItem]
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section("Due & Overdue") {
+          ForEach(bills.filter { !$0.isPaid }) { bill in
+            HStack {
+              VStack(alignment: .leading, spacing: 2) {
+                Text(bill.name)
+                Text(bill.dueDate.formatted(date: .abbreviated, time: .omitted))
+                  .font(.system(size: 11))
+                  .foregroundColor(.secondary)
+              }
+              Spacer()
+              Text("\(bill.amount, specifier: "%.2f") \(bill.currency.uppercased())")
+                .font(.system(size: 12, weight: .semibold))
+              Button("Paid") {
+                try? BillService.shared.markPaid(bill, context: modelContext)
+              }
+              .buttonStyle(.bordered)
+              .controlSize(.small)
+            }
+          }
+          if bills.filter({ !$0.isPaid }).isEmpty {
+            Text("No unpaid bills")
+              .foregroundColor(.secondary)
+          }
+        }
+      }
+      .navigationTitle("Bills")
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Close") { dismiss() }
+        }
+      }
+    }
+  }
+}
+
+private struct SavingsGoalsSheet: View {
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) private var modelContext
+  @Query(sort: \SavingsGoal.updatedAt, order: .reverse) private var goals: [SavingsGoal]
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section("Goals") {
+          if goals.isEmpty {
+            Text("No goals yet")
+              .foregroundColor(.secondary)
+          }
+          ForEach(goals) { goal in
+            VStack(alignment: .leading, spacing: 6) {
+              HStack {
+                Text(goal.title)
+                Spacer()
+                Text("\(goal.currentAmountUAH, specifier: "%.0f") / \(goal.targetAmountUAH, specifier: "%.0f") ₴")
+                  .font(.system(size: 12, weight: .semibold))
+              }
+              ProgressView(value: goal.targetAmountUAH > 0 ? goal.currentAmountUAH / goal.targetAmountUAH : 0)
+                .tint(.appAccent)
+              HStack {
+                Button("+100 ₴") {
+                  try? SavingsService.shared.contribute(goal: goal, amountUAH: 100, context: modelContext)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                Spacer()
+                Text(goal.isArchived ? "Archived" : "Active")
+                  .font(.system(size: 11))
+                  .foregroundColor(.secondary)
+              }
+            }
+          }
+        }
+      }
+      .navigationTitle("Savings Goals")
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Close") { dismiss() }
+        }
+      }
+    }
+  }
+}
+
+private struct NetWorthSheet: View {
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) private var modelContext
+  @Query(sort: \NetWorthAccount.updatedAt, order: .reverse) private var accounts: [NetWorthAccount]
+  @Query(sort: \NetWorthSnapshot.date, order: .reverse) private var snapshots: [NetWorthSnapshot]
+
+  private var total: Double {
+    (try? NetWorthService.shared.totalNetWorthUAH(context: modelContext)) ?? 0
+  }
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section("Summary") {
+          HStack {
+            Text("Total net worth")
+            Spacer()
+            Text("\(total, specifier: "%.0f") ₴")
+              .font(.system(size: 16, weight: .bold))
+          }
+          Button("Record snapshot") {
+            _ = try? NetWorthService.shared.recordSnapshot(context: modelContext, date: Date())
+          }
+          if let latest = snapshots.first {
+            Text("Last snapshot: \(latest.date.formatted(date: .abbreviated, time: .omitted))")
+              .font(.system(size: 11))
+              .foregroundColor(.secondary)
+          }
+        }
+        Section("Accounts") {
+          ForEach(accounts) { account in
+            HStack {
+              VStack(alignment: .leading) {
+                Text(account.name)
+                Text(account.type.capitalized)
+                  .font(.system(size: 11))
+                  .foregroundColor(.secondary)
+              }
+              Spacer()
+              Text("\(account.balanceUAH, specifier: "%.0f") ₴")
+            }
+          }
+        }
+      }
+      .navigationTitle("Net Worth")
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Close") { dismiss() }
+        }
+      }
+    }
+  }
+}
+
+private struct TripBudgetsSheet: View {
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) private var modelContext
+  @Query(sort: \TripBudget.updatedAt, order: .reverse) private var trips: [TripBudget]
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section("Trip Budgets") {
+          if trips.isEmpty {
+            Text("No trips yet")
+              .foregroundColor(.secondary)
+          } else {
+            ForEach(trips) { trip in
+              VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                  Text(trip.name)
+                  Spacer()
+                  Text(trip.isActive ? "Active" : "Inactive")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                }
+                Text("\(trip.startDate.formatted(date: .abbreviated, time: .omitted)) – \(trip.endDate.formatted(date: .abbreviated, time: .omitted))")
+                  .font(.system(size: 11))
+                  .foregroundColor(.secondary)
+                if let remaining = try? TripBudgetService.shared.remainingBudgetUAH(context: modelContext, trip: trip) {
+                  Text("Remaining: \(remaining, specifier: "%.0f") ₴")
+                    .font(.system(size: 12, weight: .semibold))
+                }
+              }
+            }
+          }
+        }
+      }
+      .navigationTitle("Trip Budgets")
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Close") { dismiss() }
+        }
+      }
+    }
+  }
+}
+
+private struct WeeklyReviewsSheet: View {
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) private var modelContext
+  @Query(sort: \WeeklyReviewSnapshot.generatedAt, order: .reverse) private var reviews: [WeeklyReviewSnapshot]
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section {
+          Button("Generate this week review") {
+            let calendar = Calendar.current
+            let now = Date()
+            let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now)
+              ?? DateInterval(start: now, end: now)
+            _ = try? WeeklyReviewService.shared.generateWeeklyReview(
+              context: modelContext,
+              weekStart: weekInterval.start,
+              weekEnd: weekInterval.end
+            )
+          }
+        }
+
+        Section("History") {
+          if reviews.isEmpty {
+            Text("No snapshots yet")
+              .foregroundColor(.secondary)
+          } else {
+            ForEach(reviews) { review in
+              VStack(alignment: .leading, spacing: 4) {
+                Text("\(review.weekStart.formatted(date: .abbreviated, time: .omitted)) – \(review.weekEnd.formatted(date: .abbreviated, time: .omitted))")
+                Text(review.summaryJSON)
+                  .font(.system(size: 11))
+                  .foregroundColor(.secondary)
+                  .lineLimit(3)
+              }
+            }
+          }
+        }
+      }
+      .navigationTitle("Weekly Reviews")
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Close") { dismiss() }
+        }
+      }
+    }
   }
 }
 

@@ -19,6 +19,8 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   }
 
   func scheduleTimerNotification(duration: TimeInterval, identifier: String = "timer") {
+    guard NotificationPreferencesService.shared.isAllowed(.timer) else { return }
+
     let content = UNMutableNotificationContent()
     content.title = "Timer Complete"
     content.body = "Your timer has finished!"
@@ -35,6 +37,8 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   }
 
   func scheduleAlarmNotification(date: Date) {
+    guard NotificationPreferencesService.shared.isAllowed(.alarm) else { return }
+
     let content = UNMutableNotificationContent()
     content.title = "Alarm"
     content.body = "Your alarm is ringing!"
@@ -64,6 +68,18 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   // MARK: - Event Notifications
 
   func syncEventNotifications(occurrences: [EventOccurrence]) {
+    guard NotificationPreferencesService.shared.isAllowed(.event) else {
+      UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+        let eventIdentifiers =
+          requests
+          .filter { $0.identifier.hasPrefix("event-") }
+          .map { $0.identifier }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+          withIdentifiers: eventIdentifiers)
+      }
+      return
+    }
+
     // 1. Cancel all existing event notifications to prevent duplicates/stale data
     UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
       let eventIdentifiers =
@@ -121,6 +137,7 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   }
 
   func scheduleTodoNotification(todo: TodoItem) {
+    guard NotificationPreferencesService.shared.isAllowed(.todo) else { return }
     guard let dueDate = todo.dueDate else { return }
 
     // Schedule the main reminder at the due date
@@ -205,6 +222,18 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   }
 
   func syncTodoNotifications(todos: [TodoItem]) {
+    guard NotificationPreferencesService.shared.isAllowed(.todo) else {
+      UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+        let todoIdentifiers =
+          requests
+          .filter { $0.identifier.hasPrefix("todo-") }
+          .map { $0.identifier }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+          withIdentifiers: todoIdentifiers)
+      }
+      return
+    }
+
     UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
       let todoIdentifiers =
         requests

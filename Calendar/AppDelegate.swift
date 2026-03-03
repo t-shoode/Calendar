@@ -9,8 +9,6 @@
       _ application: UIApplication,
       didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-      NotificationService.shared.requestAuthorization()
-      
       // Reload weather widget on every app launch
       WidgetCenter.shared.reloadTimelines(ofKind: "WeatherWidget")
       

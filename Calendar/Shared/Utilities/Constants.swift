@@ -100,4 +100,27 @@ public struct Constants {
     static let manualEURKey = "fx.manual.eur"
     static let updatedAtKey = "fx.updatedAt"
   }
+
+  struct Notifications {
+    static let quietHoursEnabledKey = "notifications.quiet.enabled"
+    static let quietStartHourKey = "notifications.quiet.startHour"
+    static let quietEndHourKey = "notifications.quiet.endHour"
+    static let digestEnabledKey = "notifications.digest.enabled"
+    static let digestHourKey = "notifications.digest.hour"
+    static let throttleMinutesKey = "notifications.throttle.minutes"
+  }
+
+  struct Onboarding {
+    static let forceRunFlagKey = "onboarding.forceRun"
+  }
+
+  struct Shortcuts {
+    static let pendingActionKey = "shortcuts.pending.action"
+  }
+
+  struct Backup {
+    static let defaultFilenamePrefix = "CalendarBackup"
+    static let fileExtension = "calbak"
+    static let schemaVersion = 1
+  }
 }

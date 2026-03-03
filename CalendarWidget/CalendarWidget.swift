@@ -385,14 +385,6 @@ struct MediumWidgetView: View {
         }
       }
       .padding(8)
-      .background(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .fill(scheme.surface)
-      )
-      .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .stroke(scheme.cardBorderStrong, lineWidth: 0.6)
-      )
     }
     .padding(.horizontal, 14)
     .padding(.top, 12)
@@ -443,14 +435,6 @@ struct LargeWidgetView: View {
         }
       }
       .padding(10)
-      .background(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .fill(scheme.surface)
-      )
-      .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .stroke(scheme.cardBorderStrong, lineWidth: 0.6)
-      )
 
       // Status cards
       VStack(alignment: .leading, spacing: 10) {
@@ -745,14 +729,6 @@ struct StatusCard: View {
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, 8)
-    .background(
-      RoundedRectangle(cornerRadius: 12, style: .continuous)
-        .fill(scheme.surface)
-      .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(scheme.cardBorder, lineWidth: 0.5)
-        )
-    )
   }
 }
 

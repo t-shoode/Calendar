@@ -5,12 +5,14 @@ struct CountdownView: View {
   let presets: [TimerPreset]
 
   var body: some View {
-    VStack {
+    VStack(spacing: 14) {
       TimerDisplay(
         remainingTime: viewModel.remainingTime, isRunning: viewModel.isRunning,
-        isStopwatch: viewModel.isStopwatch
+        isPaused: viewModel.isPaused,
+        isStopwatch: viewModel.isStopwatch,
+        totalDuration: viewModel.totalDuration
       )
-      .padding(.bottom, 16)
+      .padding(.bottom, 4)
 
       TimerControls(
         isRunning: viewModel.isRunning,
@@ -41,16 +43,16 @@ struct CountdownView: View {
           viewModel.selectedPreset = nil
         }
       )
-      .padding(.bottom, 20)
-      .softCard(cornerRadius: 24, padding: 14, shadow: false)
-      .padding(.horizontal, 24)
+      .softCard(cornerRadius: 20, padding: 14, shadow: false)
+      .padding(.horizontal, 20)
+      .padding(.bottom, 4)
 
       if !viewModel.isRunning && !viewModel.isPaused && !presets.isEmpty {
         VStack(alignment: .leading, spacing: 12) {
           HStack {
             Text(Localization.string(.timer))
-              .font(.system(size: 12, weight: .semibold))
-              .foregroundColor(.textTertiary)
+              .font(.system(size: 13, weight: .semibold))
+              .foregroundColor(.textSecondary)
             Spacer()
           }
 
@@ -65,6 +67,6 @@ struct CountdownView: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .top)
-    .padding(.bottom, 8)
+    .padding(.bottom, 20)
   }
 }

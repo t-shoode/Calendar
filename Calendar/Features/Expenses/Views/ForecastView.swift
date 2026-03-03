@@ -24,6 +24,7 @@ struct ForecastView: View {
   @State private var selectedScenario: ForecastScenario = .baseline
   @State private var forecastDays: [ForecastDay] = []
   @State private var confidenceBands: [ForecastConfidenceBand] = []
+  @State private var cashflowAlerts: [CashflowAlert] = []
   @State private var whatIfTitle = ""
   @State private var whatIfDeltaExpense = ""
   @State private var whatIfDeltaIncome = ""
@@ -125,6 +126,29 @@ struct ForecastView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .softCard(cornerRadius: 12, padding: 16, shadow: false)
         } else {
+          if !cashflowAlerts.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+              Text("Cashflow alerts")
+                .font(.headline)
+              ForEach(cashflowAlerts) { alert in
+                HStack(alignment: .top, spacing: 8) {
+                  Circle()
+                    .fill(alert.severity == .critical ? Color.red : (alert.severity == .warning ? Color.orange : Color.blue))
+                    .frame(width: 8, height: 8)
+                    .padding(.top, 6)
+                  VStack(alignment: .leading, spacing: 2) {
+                    Text(alert.title)
+                      .font(.system(size: 13, weight: .semibold))
+                    Text(alert.message)
+                      .font(.system(size: 12))
+                      .foregroundColor(.secondary)
+                  }
+                }
+              }
+            }
+            .softCard(cornerRadius: 12, padding: 16, shadow: false)
+          }
+
           VStack(alignment: .leading, spacing: 10) {
             Text(Localization.string(.forecastConfidenceRange))
               .font(.headline)
@@ -210,6 +234,7 @@ struct ForecastView: View {
       templates: templates,
       bills: bills
     )
+    cashflowAlerts = (try? CashflowAlertService.shared.evaluateAlerts(context: modelContext, asOf: Date())) ?? []
   }
 
   private func saveWhatIfScenario() {

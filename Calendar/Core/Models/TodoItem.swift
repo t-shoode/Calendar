@@ -64,6 +64,9 @@ class TodoItem {
   var recurrenceInterval: Int
   var recurrenceDaysOfWeek: [Int]?
   var recurrenceEndDate: Date?
+  var linkedExpenseId: UUID?
+  var linkedBillId: UUID?
+  var smartPriorityOverride: Double?
 
   var priorityEnum: Priority {
     get { Priority(rawValue: priority) ?? .medium }
@@ -133,6 +136,9 @@ class TodoItem {
     self.recurrenceInterval = recurrenceInterval
     self.recurrenceDaysOfWeek = recurrenceDaysOfWeek
     self.recurrenceEndDate = recurrenceEndDate
+    self.linkedExpenseId = nil
+    self.linkedBillId = nil
+    self.smartPriorityOverride = nil
   }
 
   func nextDueDate() -> Date? {

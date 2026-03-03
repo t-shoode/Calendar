@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsSheet: View {
   @Binding var isPresented: Bool
@@ -14,6 +15,13 @@ struct SettingsSheet: View {
     sort: \MonobankConflict.createdAt,
     order: .reverse
   ) private var pendingMonobankConflicts: [MonobankConflict]
+  @Query(sort: \NotificationPreferences.updatedAt, order: .reverse) private var notificationPrefs:
+    [NotificationPreferences]
+  @Query(sort: \OnboardingState.lastUpdatedAt, order: .reverse) private var onboardingStates:
+    [OnboardingState]
+  @Query(sort: \BillItem.updatedAt, order: .reverse) private var bills: [BillItem]
+  @Query(sort: \RecurringExpenseTemplate.updatedAt, order: .reverse) private var templates:
+    [RecurringExpenseTemplate]
   #if DEBUG
     @EnvironmentObject var debugSettings: DebugSettings
   #endif
@@ -57,6 +65,27 @@ struct SettingsSheet: View {
   @State private var showCountryPicker = false
   @State private var editingFXCurrency: Currency = .usd
   @State private var showFXEditor = false
+  @State private var notificationTodo = true
+  @State private var notificationEvent = true
+  @State private var notificationBudget = true
+  @State private var notificationSubscription = true
+  @State private var notificationBill = true
+  @State private var notificationCashflow = true
+  @State private var notificationTimer = true
+  @State private var notificationAlarm = true
+  @State private var quietHoursEnabled = false
+  @State private var quietStartHour = 22
+  @State private var quietEndHour = 8
+  @State private var digestEnabled = false
+  @State private var digestHour = 9
+  @State private var throttleMinutes = 5
+  @State private var backupPassphrase = ""
+  @State private var backupStatusMessage: String?
+  @State private var showBackupExporter = false
+  @State private var showBackupImporter = false
+  @State private var backupDocument: BackupFileDocument?
+  @State private var calendarExportDocument: CalendarExportDocument?
+  @State private var showCalendarExporter = false
 
   private var monobankConnection: MonobankConnection? {
     monobankConnections.first
@@ -158,7 +187,23 @@ struct SettingsSheet: View {
         }
 
         Section {
+          onboardingSection
+        }
+
+        Section {
+          notificationsSection
+        }
+
+        Section {
+          shortcutsSection
+        }
+
+        Section {
           fxSection
+        }
+
+        Section {
+          backupAndExportSection
         }
 
         Section {
@@ -203,15 +248,360 @@ struct SettingsSheet: View {
         showFXEditor = false
       }
     }
+    .fileExporter(
+      isPresented: $showBackupExporter,
+      document: backupDocument,
+      contentType: .data,
+      defaultFilename: "\(Constants.Backup.defaultFilenamePrefix)-\(Date().formatted(date: .numeric, time: .omitted))"
+    ) { result in
+      switch result {
+      case .success:
+        backupStatusMessage = "Backup exported"
+      case .failure(let error):
+        backupStatusMessage = error.localizedDescription
+      }
+    }
+    .fileExporter(
+      isPresented: $showCalendarExporter,
+      document: calendarExportDocument,
+      contentType: .data,
+      defaultFilename: "calendar-export-\(Date().formatted(date: .numeric, time: .omitted)).ics"
+    ) { result in
+      switch result {
+      case .success:
+        backupStatusMessage = "Calendar export created"
+      case .failure(let error):
+        backupStatusMessage = error.localizedDescription
+      }
+    }
+    .fileImporter(
+      isPresented: $showBackupImporter,
+      allowedContentTypes: [.data],
+      allowsMultipleSelection: false
+    ) { result in
+      switch result {
+      case .success(let urls):
+        guard let url = urls.first else { return }
+        importBackup(from: url)
+      case .failure(let error):
+        backupStatusMessage = error.localizedDescription
+      }
+    }
     .task {
       await FXRateService.shared.refreshRatesIfNeeded(context: modelContext)
       preloadStoredMonobankToken()
       normalizeMonobankConnections()
       syncMonobankSettingsStateFromModel()
+      loadNotificationPreferences()
     }
     .onChange(of: monobankConnections.count) { _, _ in
       syncMonobankSettingsStateFromModel()
     }
+    .onChange(of: notificationPrefs.count) { _, _ in
+      loadNotificationPreferences()
+    }
+  }
+
+  private var onboardingSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Onboarding")
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundColor(.secondary)
+
+      VStack(spacing: 0) {
+        SettingsRow(
+          title: "Status",
+          value: (onboardingStates.first?.hasCompleted ?? false) ? "Completed" : "Not completed"
+        )
+        Divider().padding(.leading, 16)
+        Button("Run onboarding again") {
+          let defaults = UserDefaults(suiteName: Constants.Storage.appGroupIdentifier) ?? .standard
+          defaults.set(true, forKey: Constants.Onboarding.forceRunFlagKey)
+          isPresented = false
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .buttonStyle(.plain)
+      }
+      .background(Color.secondaryFill)
+      .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+  }
+
+  private var notificationsSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Notifications")
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundColor(.secondary)
+
+      VStack(spacing: 0) {
+        Toggle("Todos", isOn: $notificationTodo).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationTodo) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Events", isOn: $notificationEvent).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationEvent) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Budget alerts", isOn: $notificationBudget).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationBudget) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Subscriptions", isOn: $notificationSubscription).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationSubscription) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Bills", isOn: $notificationBill).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationBill) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Cashflow", isOn: $notificationCashflow).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationCashflow) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Timer", isOn: $notificationTimer).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationTimer) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Alarm", isOn: $notificationAlarm).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: notificationAlarm) { _, _ in saveNotificationPreferences() }
+        Divider().padding(.leading, 16)
+        Toggle("Quiet hours", isOn: $quietHoursEnabled).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: quietHoursEnabled) { _, _ in saveNotificationPreferences() }
+
+        if quietHoursEnabled {
+          Divider().padding(.leading, 16)
+          HStack {
+            Text("Quiet from")
+            Spacer()
+            Picker("Start", selection: $quietStartHour) {
+              ForEach(0..<24, id: \.self) { hour in
+                Text(String(format: "%02d:00", hour)).tag(hour)
+              }
+            }
+            .pickerStyle(.menu)
+          }
+          .padding(.horizontal, 16)
+          .padding(.vertical, 10)
+          .onChange(of: quietStartHour) { _, _ in saveNotificationPreferences() }
+
+          Divider().padding(.leading, 16)
+          HStack {
+            Text("Quiet until")
+            Spacer()
+            Picker("End", selection: $quietEndHour) {
+              ForEach(0..<24, id: \.self) { hour in
+                Text(String(format: "%02d:00", hour)).tag(hour)
+              }
+            }
+            .pickerStyle(.menu)
+          }
+          .padding(.horizontal, 16)
+          .padding(.vertical, 10)
+          .onChange(of: quietEndHour) { _, _ in saveNotificationPreferences() }
+        }
+
+        Divider().padding(.leading, 16)
+        Toggle("Daily digest", isOn: $digestEnabled).padding(.horizontal, 16).padding(.vertical, 10)
+          .onChange(of: digestEnabled) { _, _ in saveNotificationPreferences() }
+
+        if digestEnabled {
+          Divider().padding(.leading, 16)
+          HStack {
+            Text("Digest hour")
+            Spacer()
+            Picker("Digest hour", selection: $digestHour) {
+              ForEach(0..<24, id: \.self) { hour in
+                Text(String(format: "%02d:00", hour)).tag(hour)
+              }
+            }
+            .pickerStyle(.menu)
+          }
+          .padding(.horizontal, 16)
+          .padding(.vertical, 10)
+          .onChange(of: digestHour) { _, _ in saveNotificationPreferences() }
+        }
+
+        Divider().padding(.leading, 16)
+        HStack {
+          Text("Throttle (minutes)")
+          Spacer()
+          Stepper(value: $throttleMinutes, in: 1...60) {
+            Text("\(throttleMinutes)")
+              .foregroundColor(.secondary)
+          }
+          .fixedSize()
+          .onChange(of: throttleMinutes) { _, _ in saveNotificationPreferences() }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+      }
+      .background(Color.secondaryFill)
+      .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+  }
+
+  private var shortcutsSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Shortcuts & Siri")
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundColor(.secondary)
+
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Available commands:")
+          .font(.system(size: 13, weight: .semibold))
+        Text("• Add expense in Calendar")
+        Text("• Add todo in Calendar")
+        Text("• Start timer in Calendar")
+        Text("• Open tab in Calendar")
+        Text("• Quick capture in Calendar")
+      }
+      .font(.system(size: 12))
+      .foregroundColor(.secondary)
+      .padding(16)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(Color.secondaryFill)
+      .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+  }
+
+  private var backupAndExportSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Backup & Export")
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundColor(.secondary)
+
+      VStack(spacing: 10) {
+        SecureField("Passphrase", text: $backupPassphrase)
+          .textFieldStyle(.roundedBorder)
+          .padding(.horizontal, 16)
+          .padding(.top, 12)
+
+        HStack {
+          Button("Export encrypted backup") {
+            exportEncryptedBackup()
+          }
+          .disabled(backupPassphrase.count < 6)
+          .buttonStyle(.plain)
+
+          Spacer()
+
+          Button("Import backup") {
+            showBackupImporter = true
+          }
+          .disabled(backupPassphrase.count < 6)
+          .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 4)
+
+        Divider().padding(.leading, 16)
+
+        HStack {
+          Button("Export Calendar (.ics)") {
+            exportCalendarICS()
+          }
+          .buttonStyle(.plain)
+          Spacer()
+          Text("\(templates.count) templates • \(bills.count) bills")
+            .font(.system(size: 11))
+            .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 12)
+
+        if let backupStatusMessage {
+          Divider().padding(.leading, 16)
+          Text(backupStatusMessage)
+            .font(.system(size: 12))
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+        }
+      }
+      .background(Color.secondaryFill)
+      .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+  }
+
+  private func loadNotificationPreferences() {
+    let prefs = NotificationPreferencesService.shared.current(context: modelContext)
+    notificationTodo = prefs.todoEnabled
+    notificationEvent = prefs.eventEnabled
+    notificationBudget = prefs.budgetEnabled
+    notificationSubscription = prefs.subscriptionEnabled
+    notificationBill = prefs.billEnabled
+    notificationCashflow = prefs.cashflowEnabled
+    notificationTimer = prefs.timerEnabled
+    notificationAlarm = prefs.alarmEnabled
+    quietHoursEnabled = prefs.quietHoursEnabled
+    quietStartHour = prefs.quietStartHour
+    quietEndHour = prefs.quietEndHour
+    digestEnabled = prefs.digestEnabled
+    digestHour = prefs.digestHour
+    throttleMinutes = prefs.throttleMinutes
+  }
+
+  private func saveNotificationPreferences() {
+    let prefs = NotificationPreferencesService.shared.current(context: modelContext)
+    prefs.todoEnabled = notificationTodo
+    prefs.eventEnabled = notificationEvent
+    prefs.budgetEnabled = notificationBudget
+    prefs.subscriptionEnabled = notificationSubscription
+    prefs.billEnabled = notificationBill
+    prefs.cashflowEnabled = notificationCashflow
+    prefs.timerEnabled = notificationTimer
+    prefs.alarmEnabled = notificationAlarm
+    prefs.quietHoursEnabled = quietHoursEnabled
+    prefs.quietStartHour = quietStartHour
+    prefs.quietEndHour = quietEndHour
+    prefs.digestEnabled = digestEnabled
+    prefs.digestHour = digestHour
+    prefs.throttleMinutes = throttleMinutes
+    prefs.updatedAt = Date()
+
+    do {
+      try modelContext.save()
+      NotificationPreferencesService.shared.syncToDefaults(prefs)
+    } catch {
+      ErrorPresenter.shared.present(error)
+    }
+  }
+
+  private func exportEncryptedBackup() {
+    do {
+      let payload = try BackupRestoreService.shared.createBackup(
+        context: modelContext,
+        passphrase: backupPassphrase
+      )
+      backupDocument = BackupFileDocument(data: payload)
+      showBackupExporter = true
+    } catch {
+      backupStatusMessage = error.localizedDescription
+    }
+  }
+
+  private func importBackup(from url: URL) {
+    do {
+      guard url.startAccessingSecurityScopedResource() else {
+        backupStatusMessage = "Cannot access selected file."
+        return
+      }
+      defer { url.stopAccessingSecurityScopedResource() }
+      let data = try Data(contentsOf: url)
+      try BackupRestoreService.shared.restoreBackup(
+        data,
+        context: modelContext,
+        passphrase: backupPassphrase
+      )
+      backupStatusMessage = "Backup restored"
+    } catch {
+      backupStatusMessage = error.localizedDescription
+    }
+  }
+
+  private func exportCalendarICS() {
+    let data = CalendarExportService.shared.exportRecurringExpensesAndBills(
+      templates: templates,
+      bills: bills,
+      from: Date(),
+      days: 180
+    )
+    calendarExportDocument = CalendarExportDocument(data: data)
+    showCalendarExporter = true
   }
 
   private var monobankSection: some View {
@@ -940,5 +1330,43 @@ struct SettingsRow: View {
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
+  }
+}
+
+private struct BackupFileDocument: FileDocument {
+  static var readableContentTypes: [UTType] = [.data]
+  static var writableContentTypes: [UTType] = [.data]
+
+  var data: Data
+
+  init(data: Data = Data()) {
+    self.data = data
+  }
+
+  init(configuration: ReadConfiguration) throws {
+    data = configuration.file.regularFileContents ?? Data()
+  }
+
+  func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+    FileWrapper(regularFileWithContents: data)
+  }
+}
+
+private struct CalendarExportDocument: FileDocument {
+  static var readableContentTypes: [UTType] = [.data]
+  static var writableContentTypes: [UTType] = [.data]
+
+  var data: Data
+
+  init(data: Data = Data()) {
+    self.data = data
+  }
+
+  init(configuration: ReadConfiguration) throws {
+    data = configuration.file.regularFileContents ?? Data()
+  }
+
+  func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+    FileWrapper(regularFileWithContents: data)
   }
 }

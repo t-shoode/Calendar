@@ -254,6 +254,8 @@ final class BudgetService {
   }
 
   private func notifyOnce(key: String, title: String, body: String) {
+    guard NotificationPreferencesService.shared.isAllowed(.budget) else { return }
+
     let already = defaults.bool(forKey: key)
     guard !already else { return }
 

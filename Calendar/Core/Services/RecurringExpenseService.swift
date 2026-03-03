@@ -235,6 +235,8 @@ class RecurringExpenseService {
     on date: Date,
     kind: RecurringNotificationKind
   ) {
+    guard NotificationPreferencesService.shared.isAllowed(.subscription) else { return }
+
     let content = UNMutableNotificationContent()
 
     if expenses.count == 1 {

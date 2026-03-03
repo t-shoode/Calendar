@@ -9,15 +9,32 @@ struct CSVImportView: View {
   @Query(sort: \Expense.date) private var existingExpenses: [Expense]
   @Query(sort: \RecurringExpenseTemplate.createdAt) private var existingTemplates:
     [RecurringExpenseTemplate]
+  @Query(sort: \CSVImportMapping.updatedAt, order: .reverse) private var mappings: [CSVImportMapping]
 
   @State private var showingFilePicker = false
+  @State private var showingMappingEditor = false
   @State private var importResult: CSVImportResult?
   @State private var isLoading = false
   @State private var errorMessage: String?
   @State private var selectedSuggestions: Set<UUID> = []
   @State private var customFrequencies: [UUID: ExpenseFrequency] = [:]
+  @State private var selectedCSVData: Data?
+  @State private var selectedCSVFileName: String?
+  @State private var selectedCSVString: String = ""
+  @State private var mappingHeaders: [String] = []
+  @State private var mappingDelimiter: String = ","
+  @State private var mappingDateFormat: String = "dd.MM.yyyy HH:mm:ss"
+  @State private var mappingName: String = "Custom Mapping"
+  @State private var mapDateHeader: String = ""
+  @State private var mapMerchantHeader: String = ""
+  @State private var mapAmountHeader: String = ""
+  @State private var mapCurrencyHeader: String = ""
+  @State private var mappingSetAsDefault = false
+  @State private var mappingPreview: [CSVTransaction] = []
+  @State private var mappingInvalidRows = 0
 
   private let importService = CSVImportService()
+  private let mappingService = CSVMappingService.shared
 
   var body: some View {
     NavigationStack {
@@ -44,6 +61,9 @@ struct CSVImportView: View {
         allowsMultipleSelection: false
       ) { result in
         handleFileSelection(result: result)
+      }
+      .sheet(isPresented: $showingMappingEditor) {
+        mappingEditorSheet
       }
     }
   }
@@ -77,6 +97,17 @@ struct CSVImportView: View {
         .cornerRadius(12)
       }
       .padding(.horizontal)
+
+      Button {
+        showingMappingEditor = true
+      } label: {
+        HStack {
+          Image(systemName: "slider.horizontal.3")
+          Text("Map columns")
+        }
+        .font(.subheadline)
+        .foregroundColor(.appAccent)
+      }
 
       if let error = errorMessage {
         Text(error)
@@ -223,8 +254,15 @@ struct CSVImportView: View {
 
         let data = try Data(contentsOf: url)
         let fileName = url.lastPathComponent
+        let csvString = String(data: data, encoding: .utf8) ?? ""
 
         DispatchQueue.main.async {
+          self.selectedCSVData = data
+          self.selectedCSVFileName = fileName
+          self.selectedCSVString = csvString
+          self.mappingHeaders = self.extractHeaders(from: csvString, delimiter: self.mappingDelimiter)
+          self.bootstrapMappingDraftIfNeeded()
+
           self.importResult = self.importService.importCSV(
             csvData: data,
             fileName: fileName,
@@ -238,6 +276,9 @@ struct CSVImportView: View {
             for suggestion in result.suggestions where suggestion.confidence > 0.8 {
               self.selectedSuggestions.insert(suggestion.id)
             }
+            if result.transactions.isEmpty && !self.mappingHeaders.isEmpty {
+              self.showingMappingEditor = true
+            }
           }
 
           self.isLoading = false
@@ -249,6 +290,194 @@ struct CSVImportView: View {
           self.isLoading = false
         }
       }
+    }
+  }
+
+  private var mappingEditorSheet: some View {
+    NavigationStack {
+      Form {
+        Section("Mapping") {
+          TextField("Mapping name", text: $mappingName)
+          TextField("Delimiter", text: $mappingDelimiter)
+          TextField("Date format", text: $mappingDateFormat)
+          Toggle("Set as default", isOn: $mappingSetAsDefault)
+        }
+
+        Section("Columns") {
+          mappingPicker(title: "Date column", selection: $mapDateHeader)
+          mappingPicker(title: "Merchant column", selection: $mapMerchantHeader)
+          mappingPicker(title: "Amount column", selection: $mapAmountHeader)
+          mappingPicker(title: "Currency column (optional)", selection: $mapCurrencyHeader, allowEmpty: true)
+        }
+
+        Section("Preview") {
+          if mappingPreview.isEmpty {
+            Text("No preview rows yet")
+              .foregroundColor(.secondary)
+          } else {
+            ForEach(mappingPreview.prefix(8)) { row in
+              VStack(alignment: .leading, spacing: 2) {
+                Text(row.date.formatted(date: .abbreviated, time: .omitted))
+                  .font(.system(size: 12, weight: .semibold))
+                Text(row.merchant)
+                  .font(.system(size: 12))
+                Text("\(row.amount, specifier: "%.2f") \(row.currency.displayName)")
+                  .font(.system(size: 12))
+                  .foregroundColor(.secondary)
+              }
+              .padding(.vertical, 2)
+            }
+          }
+          Text("Invalid rows: \(mappingInvalidRows)")
+            .font(.system(size: 12))
+            .foregroundColor(.secondary)
+        }
+      }
+      .navigationTitle("CSV Mapping")
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            showingMappingEditor = false
+          }
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Save") {
+            saveMappingAndRetryImport()
+          }
+          .disabled(mapDateHeader.isEmpty || mapMerchantHeader.isEmpty || mapAmountHeader.isEmpty)
+        }
+      }
+      .onAppear {
+        refreshMappingPreview()
+      }
+      .onChange(of: mappingDelimiter) { _, _ in
+        mappingHeaders = extractHeaders(from: selectedCSVString, delimiter: mappingDelimiter)
+        refreshMappingPreview()
+      }
+      .onChange(of: mappingDateFormat) { _, _ in
+        refreshMappingPreview()
+      }
+      .onChange(of: mapDateHeader) { _, _ in refreshMappingPreview() }
+      .onChange(of: mapMerchantHeader) { _, _ in refreshMappingPreview() }
+      .onChange(of: mapAmountHeader) { _, _ in refreshMappingPreview() }
+      .onChange(of: mapCurrencyHeader) { _, _ in refreshMappingPreview() }
+    }
+  }
+
+  private func mappingPicker(
+    title: String,
+    selection: Binding<String>,
+    allowEmpty: Bool = false
+  ) -> some View {
+    Picker(title, selection: selection) {
+      if allowEmpty {
+        Text("None").tag("")
+      }
+      ForEach(mappingHeaders, id: \.self) { header in
+        Text(header).tag(header)
+      }
+    }
+  }
+
+  private func bootstrapMappingDraftIfNeeded() {
+    guard !mappingHeaders.isEmpty else { return }
+    if mapDateHeader.isEmpty { mapDateHeader = guessHeader(from: mappingHeaders, contains: ["дата", "date"]) ?? mappingHeaders.first ?? "" }
+    if mapMerchantHeader.isEmpty { mapMerchantHeader = guessHeader(from: mappingHeaders, contains: ["деталі", "merchant", "опис", "details"]) ?? mappingHeaders.first ?? "" }
+    if mapAmountHeader.isEmpty { mapAmountHeader = guessHeader(from: mappingHeaders, contains: ["сума", "amount", "sum"]) ?? mappingHeaders.first ?? "" }
+    if mapCurrencyHeader.isEmpty { mapCurrencyHeader = guessHeader(from: mappingHeaders, contains: ["currency", "валюта"]) ?? "" }
+  }
+
+  private func guessHeader(from headers: [String], contains tokens: [String]) -> String? {
+    headers.first { header in
+      let lower = header.lowercased()
+      return tokens.contains { lower.contains($0) }
+    }
+  }
+
+  private func extractHeaders(from csvString: String, delimiter: String) -> [String] {
+    guard let firstLine = csvString.components(separatedBy: .newlines).first else { return [] }
+    let sep = delimiter.first ?? ","
+    return firstLine
+      .split(separator: sep)
+      .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+  }
+
+  private func refreshMappingPreview() {
+    guard !selectedCSVString.isEmpty else { return }
+    let map: [CSVImportField: String] = [
+      .date: mapDateHeader,
+      .merchant: mapMerchantHeader,
+      .amount: mapAmountHeader,
+      .currency: mapCurrencyHeader,
+    ].filter { !$0.value.isEmpty }
+
+    guard
+      let mapData = try? JSONEncoder().encode(Dictionary(uniqueKeysWithValues: map.map { ($0.key.rawValue, $0.value) })),
+      let mapJSON = String(data: mapData, encoding: .utf8)
+    else { return }
+
+    let mapping = CSVImportMapping(
+      name: mappingName,
+      headerFingerprint: mappingService.fingerprint(headers: mappingHeaders),
+      delimiter: mappingDelimiter,
+      dateFormat: mappingDateFormat,
+      fieldMapJSON: mapJSON,
+      isDefault: mappingSetAsDefault
+    )
+    let parsed = mappingService.parseWithMapping(csvString: selectedCSVString, mapping: mapping)
+    mappingPreview = parsed.transactions
+    mappingInvalidRows = parsed.invalidRows
+  }
+
+  private func saveMappingAndRetryImport() {
+    guard let data = selectedCSVData, let fileName = selectedCSVFileName else { return }
+
+    let map: [String: String] = [
+      CSVImportField.date.rawValue: mapDateHeader,
+      CSVImportField.merchant.rawValue: mapMerchantHeader,
+      CSVImportField.amount.rawValue: mapAmountHeader,
+      CSVImportField.currency.rawValue: mapCurrencyHeader,
+    ].filter { !$0.value.isEmpty }
+
+    guard
+      let mapData = try? JSONEncoder().encode(map),
+      let mapJSON = String(data: mapData, encoding: .utf8)
+    else { return }
+
+    if mappingSetAsDefault {
+      for existing in mappings where existing.isDefault {
+        existing.isDefault = false
+      }
+    }
+
+    let mapping = CSVImportMapping(
+      name: mappingName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        ? "Custom Mapping" : mappingName,
+      headerFingerprint: mappingService.fingerprint(headers: mappingHeaders),
+      delimiter: mappingDelimiter,
+      dateFormat: mappingDateFormat,
+      fieldMapJSON: mapJSON,
+      isDefault: mappingSetAsDefault
+    )
+    modelContext.insert(mapping)
+
+    do {
+      try modelContext.save()
+      importResult = importService.importCSV(
+        csvData: data,
+        fileName: fileName,
+        existingExpenses: existingExpenses,
+        existingTemplates: existingTemplates,
+        context: modelContext
+      )
+      if let result = importResult {
+        for suggestion in result.suggestions where suggestion.confidence > 0.8 {
+          selectedSuggestions.insert(suggestion.id)
+        }
+      }
+      showingMappingEditor = false
+    } catch {
+      errorMessage = error.localizedDescription
     }
   }
 

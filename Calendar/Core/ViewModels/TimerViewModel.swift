@@ -5,6 +5,7 @@ import WidgetKit
 
 class TimerViewModel: ObservableObject {
   @Published var remainingTime: TimeInterval = 0
+  @Published var totalDuration: TimeInterval = 0
   @Published var isRunning: Bool = false
   @Published var isPaused: Bool = false
   @Published var selectedPreset: TimerPreset?
@@ -24,6 +25,7 @@ class TimerViewModel: ObservableObject {
 
   func startTimer(duration: TimeInterval) {
     remainingTime = duration
+    totalDuration = duration
     endTime = Date().addingTimeInterval(duration)
     isRunning = true
     isPaused = false
@@ -41,6 +43,7 @@ class TimerViewModel: ObservableObject {
 
   func startStopwatch() {
     remainingTime = 0
+    totalDuration = 0
     startTime = Date()
     isRunning = true
     isPaused = false
@@ -80,6 +83,7 @@ class TimerViewModel: ObservableObject {
     isRunning = false
     isPaused = false
     remainingTime = 0
+    totalDuration = 0
     timer?.cancel()
     timer = nil
     endTime = nil
@@ -98,6 +102,7 @@ class TimerViewModel: ObservableObject {
     stopTimer()
     if let preset = selectedPreset {
       remainingTime = preset.duration
+      totalDuration = preset.duration
       saveState()
     }
   }
@@ -148,6 +153,7 @@ class TimerViewModel: ObservableObject {
   private func saveState() {
     let defaults = UserDefaults.shared
     defaults.set(remainingTime, forKey: "\(timerId).remainingTime")
+    defaults.set(totalDuration, forKey: "\(timerId).totalDuration")
     defaults.set(isRunning, forKey: "\(timerId).isRunning")
     defaults.set(isPaused, forKey: "\(timerId).isPaused")
     defaults.set(workSessions, forKey: "\(timerId).workSessions")
@@ -170,6 +176,7 @@ class TimerViewModel: ObservableObject {
   func restoreState() {
     let defaults = UserDefaults.shared
     remainingTime = defaults.double(forKey: "\(timerId).remainingTime")
+    totalDuration = defaults.double(forKey: "\(timerId).totalDuration")
     isRunning = defaults.bool(forKey: "\(timerId).isRunning")
     isPaused = defaults.bool(forKey: "\(timerId).isPaused")
     workSessions = defaults.integer(forKey: "\(timerId).workSessions")
@@ -177,6 +184,11 @@ class TimerViewModel: ObservableObject {
 
     if defaults.object(forKey: "\(timerId).isWorkSession") != nil {
       isWorkSession = defaults.bool(forKey: "\(timerId).isWorkSession")
+    }
+
+    // Backward compatibility for state saved before `totalDuration` existed.
+    if !isStopwatch && totalDuration <= 0 && remainingTime > 0 {
+      totalDuration = remainingTime
     }
 
     if isStopwatch {

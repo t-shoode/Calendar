@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import PhotosUI
 
 struct AddExpenseSheet: View {
   @Environment(\.dismiss) private var dismiss
@@ -19,6 +20,9 @@ struct AddExpenseSheet: View {
   @State private var merchant: String = ""
   @State private var notes: String = ""
   @State private var isIncome: Bool = false
+  @State private var selectedPhotoItem: PhotosPickerItem?
+  @State private var receiptAttachment: ReceiptAttachment?
+  @State private var ocrStatusMessage: String?
 
   private let viewModel = ExpenseViewModel()
 
@@ -59,11 +63,6 @@ struct AddExpenseSheet: View {
             TextField(Localization.string(.expenseAmount), text: $amountText)
               .keyboardType(.decimalPad)
           }
-        }
-        
-        Section {
-          Toggle(Localization.string(.expenseIncomeToggle), isOn: $isIncome)
-            .tint(.green)
         }
         
         Section {
@@ -156,6 +155,42 @@ struct AddExpenseSheet: View {
           }
         }
 
+        Section("Receipt") {
+          PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+            Label("Attach receipt image", systemImage: "camera.viewfinder")
+          }
+          .onChange(of: selectedPhotoItem) { _, newItem in
+            guard let newItem else { return }
+            Task { await processReceiptSelection(item: newItem) }
+          }
+
+          if let receiptAttachment {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("OCR confidence: \(Int((receiptAttachment.confidence * 100).rounded()))%")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.secondary)
+              if let merchantGuess = receiptAttachment.merchantGuess, !merchantGuess.isEmpty {
+                Text("Merchant: \(merchantGuess)")
+                  .font(.system(size: 12))
+              }
+              if let amountGuess = receiptAttachment.amountGuess {
+                Text("Amount: \(String(format: "%.2f", amountGuess))")
+                  .font(.system(size: 12))
+              }
+              if let dateGuess = receiptAttachment.dateGuess {
+                Text("Date: \(dateGuess.formatted(date: .abbreviated, time: .omitted))")
+                  .font(.system(size: 12))
+              }
+            }
+          }
+
+          if let ocrStatusMessage {
+            Text(ocrStatusMessage)
+              .font(.system(size: 12))
+              .foregroundColor(.secondary)
+          }
+        }
+
         if let onDelete = onDelete {
           Section {
             Button(role: .destructive) {
@@ -233,6 +268,38 @@ struct AddExpenseSheet: View {
       } catch {
         ErrorPresenter.presentOnMain(error)
       }
+    }
+  }
+
+  @MainActor
+  private func processReceiptSelection(item: PhotosPickerItem) async {
+    do {
+      guard let data = try await item.loadTransferable(type: Data.self) else { return }
+      let attachment = try ReceiptOCRService.shared.processReceipt(
+        imageData: data,
+        expenseId: expense?.id,
+        context: modelContext
+      )
+      receiptAttachment = attachment
+      applyOCRSuggestions(attachment)
+      ocrStatusMessage = "Receipt processed"
+    } catch {
+      ocrStatusMessage = error.localizedDescription
+    }
+  }
+
+  private func applyOCRSuggestions(_ attachment: ReceiptAttachment) {
+    if merchant.isEmpty, let merchantGuess = attachment.merchantGuess, !merchantGuess.isEmpty {
+      merchant = merchantGuess
+      if title.isEmpty {
+        title = merchantGuess
+      }
+    }
+    if amountText.isEmpty, let amountGuess = attachment.amountGuess {
+      amountText = String(format: "%.2f", amountGuess)
+    }
+    if let dateGuess = attachment.dateGuess {
+      date = dateGuess
     }
   }
 }
